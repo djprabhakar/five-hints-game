@@ -22,3 +22,144 @@ button,
 input {
   font: inherit;
 }
+
+.category-picker-button {
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 999px;
+  border: 1px solid #cbd5f5;
+  background: #ffffff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 10px 20px rgba(15, 23, 42, 0.12);
+}
+
+.category-picker-button:active {
+  transform: translateY(1px);
+}
+
+@media (max-width: 900px) {
+  .play-action-row {
+    padding-bottom: calc(4.5rem + env(safe-area-inset-bottom));
+  }
+
+  .next-inline {
+    display: none;
+  }
+
+  .next-fab-portal {
+    position: fixed;
+    bottom: calc(4.5rem + env(safe-area-inset-bottom));
+    z-index: 200;
+    right: 1rem;
+  }
+
+  .next-fab-image {
+    width: 3.5rem;
+    height: 3.5rem;
+    padding: 0;
+    border: none;
+    background: transparent;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .next-fab-image:disabled {
+    opacity: 0.6;
+  }
+
+  .next-fab-icon {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+}
+
+@media (min-width: 901px) {
+  .next-fab-portal {
+    display: none;
+  }
+}
+.play-stack > * + * {
+  margin-top: 0.75rem;
+}
+
+.play-stack > .play-action-row + * {
+  margin-top: 0;
+}
+
+.play-stack .hints-grid + * {
+  margin-top: 0.35rem;
+}
+
+.play-action-row {
+  padding: 0;
+}
+
+.category-panel {
+  border: 1px solid #e2e8f0;
+  border-radius: 1.25rem;
+  background: #ffffff;
+  padding: 0.5rem 0.75rem;
+  box-shadow: 0 12px 24px rgba(15, 23, 42, 0.08);
+}
+
+.category-panel-summary {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.5rem 0.25rem;
+  width: 100%;
+  background: none;
+  border: none;
+  text-align: left;
+}
+
+.category-panel-content {
+  border-top: 1px solid #e2e8f0;
+  padding: 0.75rem 0.25rem 0.25rem;
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+  transition: max-height 0.25s ease, opacity 0.2s ease;
+}
+
+.category-panel.open .category-panel-chevron {
+  transform: rotate(180deg);
+}
+
+.category-panel-chevron {
+  color: #64748b;
+  transition: transform 0.2s ease;
+}
+
+.category-panel-content.open {
+  max-height: 420px;
+  opacity: 1;
+}
+
+.category-owner-panel {
+  border-radius: 1rem;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  padding: 0.75rem;
+}
+
+.category-owner-title {
+  margin: 0 0 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: #64748b;
+}
+
+.game-chip {
+  width: auto;
+  max-width: 100%;
+  white-space: nowrap;
+}

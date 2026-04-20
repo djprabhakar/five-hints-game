@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git checkout *)",
+      "Bash(powershell -NoProfile -Command \"Get-Content 'c:\\\\Users\\\\prabhakar.jayakumar\\\\five-hints-game\\\\package.json'\")"
+    ]
+  }
+}

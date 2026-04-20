@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Option A — Party Mode</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap');
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Inter', 'Segoe UI', sans-serif; background: #0d0620; color: #f1f5f9; min-height: 100vh; overflow-x: hidden; }
+
+  /* ========= STARFIELD BG ========= */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background: radial-gradient(ellipse at 20% 40%, #3b0764 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 10%, #1e1b4b 0%, transparent 50%),
+                radial-gradient(ellipse at 50% 90%, #0f172a 0%, transparent 60%);
+    z-index: 0; pointer-events: none;
+  }
+
+  /* ========= HEADER ========= */
+  .app-header {
+    position: relative; z-index: 10;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 32px;
+    background: rgba(13,6,32,0.8);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(139,92,246,0.2);
+  }
+  .logo { font-size: 1.4rem; font-weight: 900; letter-spacing: -0.03em; color: #fff; }
+  .logo span { color: #a78bfa; }
+
+  .team-tabs {
+    display: flex; gap: 8px;
+  }
+  .team-tab {
+    padding: 8px 20px;
+    border-radius: 999px;
+    font-size: 0.85rem; font-weight: 700;
+    cursor: pointer; transition: all 0.15s;
+    border: 2px solid transparent;
+    letter-spacing: 0.02em;
+  }
+  .team-tab.active { background: #7c3aed; border-color: #a78bfa; color: #fff; box-shadow: 0 0 20px #7c3aed80; }
+  .team-tab:not(.active) { background: rgba(124,58,237,0.12); border-color: rgba(124,58,237,0.3); color: #a78bfa; }
+
+  .header-right { display: flex; align-items: center; gap: 12px; }
+  .round-badge {
+    padding: 6px 16px; border-radius: 999px;
+    background: rgba(251,191,36,0.15); border: 1px solid rgba(251,191,36,0.35);
+    font-size: 0.8rem; font-weight: 700; color: #fbbf24; letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  /* ========= MAIN LAYOUT ========= */
+  .main {
+    position: relative; z-index: 10;
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    gap: 24px;
+    padding: 24px 32px;
+    min-height: calc(100vh - 70px);
+  }
+
+  /* ========= GAME AREA ========= */
+  .game-area {}
+
+  /* Entry progress bar */
+  .entry-progress {
+    display: flex; align-items: center; gap: 16px; margin-bottom: 20px;
+  }
+  .entry-label { font-size: 0.8rem; font-weight: 600; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.1em; }
+  .progress-dots { display: flex; gap: 6px; flex: 1; }
+  .pdot {
+    height: 6px; border-radius: 999px; flex: 1;
+    background: rgba(139,92,246,0.2);
+    transition: background 0.3s;
+  }
+  .pdot.done { background: #7c3aed; }
+  .pdot.active { background: #a78bfa; box-shadow: 0 0 8px #a78bfa; }
+
+  /* Title / Word being guessed */
+  .word-title {
+    font-size: 2.8rem; font-weight: 900; letter-spacing: -0.04em;
+    color: #fff;
+    margin-bottom: 6px;
+    line-height: 1.1;
+  }
+  .word-subtitle {
+    font-size: 1rem; color: #94a3b8; margin-bottom: 28px;
+  }
+  .word-subtitle em { color: #c4b5fd; font-style: normal; font-weight: 600; }
+
+  /* Hints grid */
+  .hints-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 12px;
+    margin-bottom: 28px;
+  }
+
+  .hint-card {
+    border-radius: 16px;
+    padding: 14px 12px;
+    min-height: 100px;
+    display: flex; flex-direction: column;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+
+  .hint-card .hint-num {
+    font-size: 0.72rem; font-weight: 800; letter-spacing: 0.12em;
+    text-transform: uppercase; margin-bottom: 8px;
+  }
+  .hint-card .hint-text {
+    font-size: 0.85rem; line-height: 1.5; flex: 1;
+  }
+  .hint-card .status-badge {
+    margin-top: 10px; align-self: flex-start;
+    padding: 2px 8px; border-radius: 999px;
+    font-size: 0.65rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+  }
+
+  /* Unlocked */
+  .hint-unlocked {
+    background: rgba(139,92,246,0.12);
+    border: 1px solid rgba(139,92,246,0.3);
+  }
+  .hint-unlocked .hint-num { color: #a78bfa; }
+  .hint-unlocked .hint-text { color: #e2e8f0; }
+
+  /* Active (current) */
+  .hint-active {
+    background: linear-gradient(135deg, rgba(124,58,237,0.25), rgba(167,139,250,0.15));
+    border: 2px solid #a78bfa;
+    box-shadow: 0 0 24px rgba(167,139,250,0.3), inset 0 0 24px rgba(167,139,250,0.05);
+    transform: scale(1.04);
+  }
+  .hint-active .hint-num { color: #c4b5fd; }
+  .hint-active .hint-text { color: #fff; font-weight: 600; }
+
+  /* Wrong guess */
+  .hint-wrong .status-badge { background: rgba(239,68,68,0.2); color: #fca5a5; }
+
+  /* Locked */
+  .hint-locked {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.06);
+    opacity: 0.5;
+  }
+  .hint-locked .hint-num { color: #475569; }
+  .hint-lock-icon { font-size: 1.5rem; margin: auto; opacity: 0.3; }
+
+  /* Answer input row */
+  .answer-row {
+    display: flex; gap: 12px; align-items: center;
+    margin-bottom: 16px;
+  }
+  .answer-input {
+    flex: 1;
+    background: rgba(255,255,255,0.06);
+    border: 2px solid rgba(139,92,246,0.4);
+    border-radius: 14px;
+    padding: 16px 20px;
+    font-size: 1.1rem; font-weight: 600; color: #fff;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .answer-input::placeholder { color: #475569; }
+  .answer-input:focus { border-color: #a78bfa; box-shadow: 0 0 20px rgba(167,139,250,0.2); }
+  .guess-btn {
+    padding: 16px 32px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, #7c3aed, #6d28d9);
+    border: none; color: #fff; font-size: 1rem; font-weight: 800;
+    cursor: pointer; letter-spacing: 0.02em;
+    box-shadow: 0 0 20px rgba(124,58,237,0.5);
+    transition: transform 0.15s, box-shadow 0.15s;
+  }
+  .guess-btn:hover { transform: scale(1.04); box-shadow: 0 0 30px rgba(124,58,237,0.7); }
+
+  .skip-hint {
+    font-size: 0.82rem; color: #64748b; text-align: center;
+    cursor: pointer; padding: 4px;
+    transition: color 0.15s;
+  }
+  .skip-hint:hover { color: #a78bfa; }
+
+  /* Result message */
+  .result-msg {
+    padding: 14px 20px; border-radius: 12px;
+    font-size: 0.95rem; font-weight: 600; text-align: center;
+    background: rgba(239,68,68,0.15); border: 1px solid rgba(239,68,68,0.3); color: #fca5a5;
+    margin-top: 8px;
+  }
+
+  /* ========= SCOREBOARD ========= */
+  .scoreboard {
+    position: sticky; top: 24px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(139,92,246,0.2);
+    border-radius: 24px;
+    padding: 24px;
+    height: fit-content;
+  }
+  .scoreboard h3 {
+    font-size: 0.75rem; font-weight: 700; color: #64748b;
+    text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 16px;
+  }
+
+  .score-item {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 14px; border-radius: 12px;
+    margin-bottom: 8px;
+    transition: background 0.15s;
+  }
+  .score-item.active { background: rgba(124,58,237,0.18); }
+  .score-item:not(.active) { background: rgba(255,255,255,0.03); }
+
+  .score-rank { font-size: 1rem; width: 24px; text-align: center; }
+  .score-avatar {
+    width: 36px; height: 36px; border-radius: 999px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.8rem; font-weight: 800;
+  }
+  .score-info { flex: 1; }
+  .score-name { font-size: 0.9rem; font-weight: 700; color: #e2e8f0; }
+  .score-sub { font-size: 0.75rem; color: #64748b; margin-top: 1px; }
+  .score-pts { font-size: 1.3rem; font-weight: 900; }
+
+  .score-item.active .score-pts { color: #a78bfa; }
+  .score-item.active .score-name { color: #fff; }
+
+  .score-item:nth-child(2) .score-pts { color: #fbbf24; }
+
+  /* Divider */
+  .score-divider { height: 1px; background: rgba(255,255,255,0.05); margin: 16px 0; }
+
+  .session-stat {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 8px 0;
+  }
+  .session-stat span { font-size: 0.82rem; color: #64748b; }
+  .session-stat strong { font-size: 0.9rem; font-weight: 700; color: #c4b5fd; }
+
+  /* Next round button */
+  .next-round-btn {
+    width: 100%; margin-top: 20px;
+    padding: 14px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #7c3aed, #6d28d9);
+    border: none; color: #fff; font-size: 0.9rem; font-weight: 800;
+    cursor: pointer;
+    box-shadow: 0 0 16px rgba(124,58,237,0.4);
+    letter-spacing: 0.04em; text-transform: uppercase;
+  }
+
+  /* ========= ANNOTATIONS ========= */
+  .annotation {
+    position: absolute;
+    background: rgba(251,191,36,0.9);
+    color: #0f0f13;
+    font-size: 0.7rem; font-weight: 700;
+    padding: 4px 8px; border-radius: 6px;
+    white-space: nowrap;
+    z-index: 100;
+  }
+  .annotation::before {
+    content: '▶';
+    margin-right: 4px;
+    opacity: 0.7;
+  }
+
+  /* ========= MODE LABEL ========= */
+  .mode-banner {
+    background: linear-gradient(90deg, #7c3aed22, transparent);
+    border-left: 3px solid #7c3aed;
+    padding: 8px 16px; margin-bottom: 20px;
+    border-radius: 0 8px 8px 0;
+    font-size: 0.78rem; font-weight: 600; color: #a78bfa; letter-spacing: 0.06em;
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="app-header">
+  <div class="logo">five <span>hints</span></div>
+
+  <div class="team-tabs">
+    <div class="team-tab active">Team A — Priya</div>
+    <div class="team-tab">Team B — Raj</div>
+    <div class="team-tab">Team C — Sam</div>
+    <div style="padding:8px 14px;border-radius:999px;background:rgba(255,255,255,0.06);font-size:0.82rem;color:#64748b;cursor:pointer;border:1px dashed #334155;">+ Add</div>
+  </div>
+
+  <div class="header-right">
+    <div class="round-badge">Round 3 / 10</div>
+    <div style="width:36px;height:36px;border-radius:999px;background:#7c3aed;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:0.85rem;cursor:pointer;">PJ</div>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+  <!-- GAME AREA -->
+  <div class="game-area" style="position:relative;">
+
+    <div class="mode-banner">PARTY MODE — Team A's Turn</div>
+
+    <!-- Progress -->
+    <div class="entry-progress">
+      <span class="entry-label">Entry 7 / 20</span>
+      <div class="progress-dots">
+        <div class="pdot done"></div><div class="pdot done"></div><div class="pdot done"></div>
+        <div class="pdot done"></div><div class="pdot done"></div><div class="pdot done"></div>
+        <div class="pdot active"></div>
+        <div class="pdot"></div><div class="pdot"></div><div class="pdot"></div>
+        <div class="pdot"></div><div class="pdot"></div><div class="pdot"></div>
+        <div class="pdot"></div><div class="pdot"></div><div class="pdot"></div>
+        <div class="pdot"></div><div class="pdot"></div><div class="pdot"></div><div class="pdot"></div>
+      </div>
+    </div>
+
+    <!-- Word title -->
+    <div class="word-title">Geography: World Capitals</div>
+    <div class="word-subtitle">Category: <em>World Geography · Created by PJ</em></div>
+
+    <!-- Hints -->
+    <div class="hints-grid">
+
+      <div class="hint-card hint-unlocked hint-wrong" style="position:relative;">
+        <div class="hint-num">Hint 1</div>
+        <div class="hint-text">This city is located on the Bosphorus Strait, connecting Europe and Asia.</div>
+        <div class="status-badge">✗ Wrong</div>
+        <!-- annotation -->
+        <div class="annotation" style="top:-28px;left:0;">Revealed after wrong guess</div>
+      </div>
+
+      <div class="hint-card hint-unlocked hint-wrong">
+        <div class="hint-num">Hint 2</div>
+        <div class="hint-text">It has been the capital of its country since 1923, replacing a more famous city.</div>
+        <div class="status-badge">✗ Wrong</div>
+      </div>
+
+      <div class="hint-card hint-active" style="position:relative;">
+        <div class="hint-num">Hint 3 — Current</div>
+        <div class="hint-text">The city's name means "moon" in the local language and it's known for Atatürk Mausoleum.</div>
+        <!-- annotation -->
+        <div class="annotation" style="bottom:-28px;left:0;background:#a78bfa;">Active hint — guess now</div>
+      </div>
+
+      <div class="hint-card hint-locked">
+        <div class="hint-num">Hint 4</div>
+        <div class="hint-lock-icon">🔒</div>
+      </div>
+
+      <div class="hint-card hint-locked">
+        <div class="hint-num">Hint 5</div>
+        <div class="hint-lock-icon">🔒</div>
+      </div>
+
+    </div>
+
+    <!-- Input -->
+    <div class="answer-row">
+      <input class="answer-input" type="text" placeholder="Type your answer…" value="Ankara" />
+      <button class="guess-btn">GUESS →</button>
+    </div>
+    <div class="skip-hint">Use another hint instead (costs 1 point)</div>
+
+    <div class="result-msg">✗ "Istanbul" is incorrect — try again</div>
+
+  </div>
+
+  <!-- SCOREBOARD -->
+  <div class="scoreboard" style="position:relative;">
+    <div class="annotation" style="top:-10px;right:0;">Live scoreboard visible to all players</div>
+
+    <h3>Scoreboard</h3>
+
+    <div class="score-item active">
+      <div class="score-rank">🎯</div>
+      <div class="score-avatar" style="background:#7c3aed22;color:#a78bfa;">PJ</div>
+      <div class="score-info">
+        <div class="score-name">Priya (Team A)</div>
+        <div class="score-sub">7 entries · 6 solved</div>
+      </div>
+      <div class="score-pts">24</div>
+    </div>
+
+    <div class="score-item">
+      <div class="score-rank">2</div>
+      <div class="score-avatar" style="background:#fbbf2422;color:#fbbf24;">RK</div>
+      <div class="score-info">
+        <div class="score-name">Raj (Team B)</div>
+        <div class="score-sub">7 entries · 5 solved</div>
+      </div>
+      <div class="score-pts" style="color:#fbbf24;">21</div>
+    </div>
+
+    <div class="score-item">
+      <div class="score-rank">3</div>
+      <div class="score-avatar" style="background:#06b6d422;color:#67e8f9;">SC</div>
+      <div class="score-info">
+        <div class="score-name">Sam (Team C)</div>
+        <div class="score-sub">6 entries · 5 solved</div>
+      </div>
+      <div class="score-pts" style="color:#67e8f9;">18</div>
+    </div>
+
+    <div class="score-divider"></div>
+
+    <div class="session-stat">
+      <span>Game</span>
+      <strong>World Geography</strong>
+    </div>
+    <div class="session-stat">
+      <span>Remaining</span>
+      <strong>13 entries</strong>
+    </div>
+    <div class="session-stat">
+      <span>Your streak</span>
+      <strong>🔥 3</strong>
+    </div>
+
+    <button class="next-round-btn">Next Round ▶</button>
+  </div>
+
+</div>
+
+<!-- Design Notes -->
+<div style="background:#0a0014;border-top:1px solid #1e1b4b;padding:24px 32px;">
+  <h3 style="color:#a78bfa;font-size:0.85rem;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:12px;">Design Notes — Option A: Party Mode</h3>
+  <ul style="list-style:none;display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+    <li style="color:#94a3b8;font-size:0.85rem;">✦ <strong style="color:#e2e8f0;">Team tabs in header</strong> — switch whose turn it is without leaving the screen</li>
+    <li style="color:#94a3b8;font-size:0.85rem;">✦ <strong style="color:#e2e8f0;">Live scoreboard sidebar</strong> — always visible, creates competition and excitement</li>
+    <li style="color:#94a3b8;font-size:0.85rem;">✦ <strong style="color:#e2e8f0;">Large, readable text</strong> — designed for a shared TV/monitor or projected screen</li>
+    <li style="color:#94a3b8;font-size:0.85rem;">✦ <strong style="color:#e2e8f0;">Wrong/correct badge per hint</strong> — everyone can follow the guessing history</li>
+    <li style="color:#94a3b8;font-size:0.85rem;">✦ <strong style="color:#e2e8f0;">Glow effects</strong> — active hint card glows to focus attention</li>
+    <li style="color:#94a3b8;font-size:0.85rem;">✦ <strong style="color:#e2e8f0;">Solo compatible</strong> — team tabs collapse to single player; scoreboard shows personal session stats</li>
+  </ul>
+</div>
+
+</body>
+</html>

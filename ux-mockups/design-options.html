@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Five Hints — UX Design Options</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', system-ui, sans-serif; background: #0f0f13; color: #e2e8f0; min-height: 100vh; }
+
+  .page-header {
+    text-align: center;
+    padding: 48px 24px 32px;
+    border-bottom: 1px solid #1e2535;
+  }
+  .page-header h1 { font-size: 2rem; font-weight: 800; color: #fff; letter-spacing: -0.02em; }
+  .page-header p { margin-top: 8px; color: #94a3b8; font-size: 1rem; }
+
+  .options-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+    padding: 40px 40px;
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+
+  .option-card {
+    border-radius: 20px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    border: 2px solid transparent;
+    text-decoration: none;
+    display: block;
+  }
+  .option-card:hover { transform: translateY(-6px); box-shadow: 0 20px 60px rgba(0,0,0,0.5); }
+
+  .option-card .preview {
+    height: 420px;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .option-card .label {
+    padding: 20px 24px;
+    background: #1a1f2e;
+  }
+  .option-card .label h2 { font-size: 1.1rem; font-weight: 700; color: #fff; }
+  .option-card .label p { margin-top: 4px; font-size: 0.85rem; color: #94a3b8; line-height: 1.5; }
+  .option-card .label .tag {
+    display: inline-block;
+    margin-top: 10px;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  .open-btn {
+    display: inline-block;
+    margin-top: 12px;
+    padding: 8px 18px;
+    border-radius: 8px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #fff;
+    text-decoration: none;
+    cursor: pointer;
+  }
+
+  /* ---- OPTION A: Party / Jackbox ---- */
+  .card-party { border-color: #7c3aed; }
+  .card-party .preview { background: #1a0a2e; }
+  .tag-party { background: #7c3aed22; color: #a78bfa; border: 1px solid #7c3aed44; }
+  .btn-party { background: #7c3aed; }
+
+  /* ---- OPTION B: Game Show / Premium ---- */
+  .card-show { border-color: #d97706; }
+  .card-show .preview { background: #0c1117; }
+  .tag-show { background: #d9770622; color: #fbbf24; border: 1px solid #d9770644; }
+  .btn-show { background: #d97706; }
+
+  /* ---- OPTION C: Casual / NYT ---- */
+  .card-casual { border-color: #059669; }
+  .card-casual .preview { background: #f0fdf4; }
+  .tag-casual { background: #05966922; color: #34d399; border: 1px solid #05966944; }
+  .btn-casual { background: #059669; color: #fff; }
+
+  .footer-note {
+    text-align: center;
+    padding: 24px;
+    color: #475569;
+    font-size: 0.85rem;
+  }
+
+  @media (max-width: 900px) {
+    .options-grid { grid-template-columns: 1fr; padding: 20px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <h1>Five Hints — UX Design Options</h1>
+  <p>Three distinct design directions for solo + group play. Click "Open Mockup" on each to see a full interactive preview.</p>
+</div>
+
+<div class="options-grid">
+
+  <!-- OPTION A -->
+  <div class="option-card card-party">
+    <div class="preview">
+      <iframe src="option-a-party.html" style="width:100%;height:100%;border:none;transform-origin:top left;" scrolling="no"></iframe>
+    </div>
+    <div class="label">
+      <h2>A — Party Mode</h2>
+      <span class="tag tag-party">Group-First</span>
+      <p>Bold, large-text design built for a shared screen. Teams take turns, scores are visible to all, and dramatic hint reveals create shared excitement. Inspired by Jackbox Games.</p>
+      <a href="option-a-party.html" target="_blank" class="open-btn btn-party">Open Mockup →</a>
+    </div>
+  </div>
+
+  <!-- OPTION B -->
+  <div class="option-card card-show">
+    <div class="preview">
+      <iframe src="option-b-gameshow.html" style="width:100%;height:100%;border:none;transform-origin:top left;" scrolling="no"></iframe>
+    </div>
+    <div class="label">
+      <h2>B — Game Show</h2>
+      <span class="tag tag-show">Premium / Cinematic</span>
+      <p>Dark, dramatic, high-stakes feel. Hints reveal like sealed envelopes under a spotlight. Works for solo and groups. Think "Who Wants to Be a Millionaire" meets Wordle.</p>
+      <a href="option-b-gameshow.html" target="_blank" class="open-btn btn-show">Open Mockup →</a>
+    </div>
+  </div>
+
+  <!-- OPTION C -->
+  <div class="option-card card-casual">
+    <div class="preview">
+      <iframe src="option-c-casual.html" style="width:100%;height:100%;border:none;transform-origin:top left;" scrolling="no"></iframe>
+    </div>
+    <div class="label">
+      <h2>C — Clean & Casual</h2>
+      <span class="tag tag-casual">Accessible / Daily Play</span>
+      <p>Light, friendly, mobile-native feel. Clean card flips, subtle animations, easy to share. Best for regular solo players and casual groups. Inspired by NYT Games and Duolingo.</p>
+      <a href="option-c-casual.html" target="_blank" class="open-btn btn-casual">Open Mockup →</a>
+    </div>
+  </div>
+
+</div>
+
+<div class="footer-note">Open each mockup in a new tab for the full interactive experience. All mockups are static prototypes.</div>
+
+</body>
+</html>

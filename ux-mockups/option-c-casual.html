@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Option C — Clean & Casual</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Inter', 'Segoe UI', sans-serif;
+    background: #f8fafc;
+    color: #0f172a;
+    min-height: 100vh;
+  }
+
+  /* ========= HEADER ========= */
+  .header {
+    background: #fff;
+    border-bottom: 1px solid #e2e8f0;
+    padding: 0 24px;
+    height: 56px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .logo { font-size: 1.05rem; font-weight: 900; color: #0f172a; letter-spacing: -0.02em; }
+  .logo .dot { color: #10b981; }
+
+  .header-center {
+    display: flex; align-items: center; gap: 6px;
+  }
+  .game-chip {
+    padding: 5px 12px; border-radius: 999px;
+    background: #f1f5f9; border: 1px solid #e2e8f0;
+    font-size: 0.78rem; font-weight: 600; color: #64748b;
+    cursor: pointer;
+  }
+  .game-chip.active { background: #ecfdf5; border-color: #6ee7b7; color: #059669; }
+
+  .header-right { display: flex; align-items: center; gap: 10px; }
+  .avatar {
+    width: 32px; height: 32px; border-radius: 999px;
+    background: linear-gradient(135deg, #10b981, #0d9488);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.72rem; font-weight: 800; color: #fff; cursor: pointer;
+  }
+
+  /* ========= MAIN ========= */
+  .main {
+    max-width: 700px; margin: 0 auto;
+    padding: 28px 20px;
+  }
+
+  /* Game meta row */
+  .game-meta {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 20px;
+  }
+  .game-name { font-size: 1rem; font-weight: 700; color: #0f172a; }
+  .entry-count { font-size: 0.8rem; color: #94a3b8; font-weight: 600; }
+
+  /* Progress bar */
+  .progress-bar-wrap { margin-bottom: 24px; }
+  .progress-bar-track {
+    height: 6px; background: #e2e8f0; border-radius: 999px; overflow: hidden;
+  }
+  .progress-bar-fill {
+    height: 100%; width: 35%;
+    background: linear-gradient(90deg, #10b981, #34d399);
+    border-radius: 999px;
+    transition: width 0.4s ease;
+  }
+  .progress-label { display: flex; justify-content: space-between; margin-top: 6px; }
+  .progress-label span { font-size: 0.72rem; color: #94a3b8; font-weight: 500; }
+
+  /* Score pills */
+  .score-pills {
+    display: flex; gap: 8px; margin-bottom: 24px;
+  }
+  .score-pill {
+    padding: 8px 16px; border-radius: 12px;
+    background: #fff; border: 1px solid #e2e8f0;
+    display: flex; align-items: center; gap: 8px;
+    flex: 1; justify-content: center;
+  }
+  .score-pill .pill-val { font-size: 1.3rem; font-weight: 800; color: #0f172a; }
+  .score-pill .pill-lbl { font-size: 0.7rem; font-weight: 600; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.08em; }
+  .score-pill.pts .pill-val { color: #10b981; }
+
+  /* Hint cards */
+  .hints-stack {
+    display: flex; flex-direction: column; gap: 10px;
+    margin-bottom: 24px;
+  }
+
+  .hint-row {
+    display: flex; align-items: flex-start; gap: 12px;
+    padding: 14px 16px;
+    border-radius: 14px;
+    background: #fff;
+    border: 1.5px solid #e2e8f0;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+
+  /* wrong */
+  .hint-row.wrong {
+    background: #fff5f5;
+    border-color: #fecaca;
+  }
+  /* active */
+  .hint-row.active {
+    background: #f0fdf9;
+    border-color: #6ee7b7;
+    box-shadow: 0 0 0 3px rgba(16,185,129,0.08), 0 2px 12px rgba(16,185,129,0.1);
+  }
+  /* locked */
+  .hint-row.locked {
+    background: #f8fafc;
+    border-color: #f1f5f9;
+    opacity: 0.55;
+  }
+
+  .hint-num-badge {
+    width: 28px; height: 28px; border-radius: 8px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.72rem; font-weight: 800;
+    margin-top: 1px;
+  }
+  .hint-row.wrong .hint-num-badge { background: #fee2e2; color: #ef4444; }
+  .hint-row.active .hint-num-badge { background: #d1fae5; color: #059669; }
+  .hint-row.locked .hint-num-badge { background: #f1f5f9; color: #94a3b8; }
+  .hint-row:not(.wrong):not(.active):not(.locked) .hint-num-badge { background: #f1f5f9; color: #64748b; }
+
+  .hint-content { flex: 1; }
+  .hint-label {
+    font-size: 0.68rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+  .hint-row.wrong .hint-label { color: #ef4444; }
+  .hint-row.active .hint-label { color: #059669; }
+  .hint-row.locked .hint-label { color: #94a3b8; }
+  .hint-row:not(.wrong):not(.active):not(.locked) .hint-label { color: #64748b; }
+
+  .hint-text { font-size: 0.88rem; color: #1e293b; line-height: 1.55; font-weight: 500; }
+  .hint-row.locked .hint-text { color: #94a3b8; }
+
+  .hint-wrong-badge {
+    padding: 2px 8px; border-radius: 999px;
+    background: #fee2e2; color: #ef4444;
+    font-size: 0.62rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em;
+    margin-left: auto; align-self: flex-start; white-space: nowrap; flex-shrink: 0;
+  }
+
+  /* Input area */
+  .input-area {
+    background: #fff;
+    border: 1.5px solid #6ee7b7;
+    border-radius: 16px;
+    padding: 16px;
+    box-shadow: 0 0 0 3px rgba(16,185,129,0.08);
+  }
+  .input-top { display: flex; gap: 10px; margin-bottom: 10px; }
+  .guess-input {
+    flex: 1;
+    background: #f8fafc;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 12px 16px;
+    font-size: 1rem; font-weight: 600; color: #0f172a;
+    outline: none;
+  }
+  .guess-input:focus { border-color: #10b981; }
+  .guess-btn {
+    padding: 12px 22px; border-radius: 10px;
+    background: #10b981; border: none;
+    color: #fff; font-size: 0.9rem; font-weight: 700;
+    cursor: pointer;
+    transition: background 0.15s, transform 0.1s;
+  }
+  .guess-btn:hover { background: #059669; transform: scale(1.02); }
+
+  .input-actions {
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .wrong-indicator {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 0.8rem; font-weight: 600; color: #ef4444;
+  }
+  .attempt-dots { display: flex; gap: 4px; }
+  .adot { width: 8px; height: 8px; border-radius: 999px; }
+  .adot.used { background: #ef4444; }
+  .adot.current { background: #f97316; }
+  .adot.free { background: #e2e8f0; }
+
+  .next-hint-link {
+    font-size: 0.78rem; font-weight: 600; color: #94a3b8;
+    cursor: pointer; text-decoration: none;
+    transition: color 0.15s;
+    display: flex; align-items: center; gap: 4px;
+  }
+  .next-hint-link:hover { color: #10b981; }
+
+  /* ========= GROUP PANEL ========= */
+  .group-panel {
+    background: #fff;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 16px;
+    margin-top: 16px;
+  }
+  .group-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 12px;
+  }
+  .group-title { font-size: 0.78rem; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.08em; }
+  .add-player-btn {
+    padding: 4px 12px; border-radius: 999px;
+    background: #f0fdf4; border: 1px solid #a7f3d0;
+    font-size: 0.72rem; font-weight: 600; color: #059669; cursor: pointer;
+  }
+
+  .players-row { display: flex; gap: 8px; flex-wrap: wrap; }
+  .player-chip {
+    display: flex; align-items: center; gap: 7px;
+    padding: 6px 12px; border-radius: 999px;
+    font-size: 0.8rem; font-weight: 600;
+    border: 1.5px solid transparent;
+    cursor: pointer;
+  }
+  .player-chip.turn { background: #ecfdf5; border-color: #6ee7b7; color: #059669; }
+  .player-chip:not(.turn) { background: #f8fafc; border-color: #e2e8f0; color: #64748b; }
+  .player-avatar { width: 22px; height: 22px; border-radius: 999px; display: flex; align-items: center; justify-content: center; font-size: 0.62rem; font-weight: 800; }
+  .player-chip.turn .player-avatar { background: #10b981; color: #fff; }
+  .player-chip:not(.turn) .player-avatar { background: #e2e8f0; color: #94a3b8; }
+  .player-pts { color: #94a3b8; font-size: 0.72rem; }
+  .player-chip.turn .player-pts { color: #059669; }
+
+  /* ========= ANNOTATIONS ========= */
+  .ann {
+    background: rgba(251,191,36,0.95);
+    color: #000;
+    font-size: 0.68rem; font-weight: 700;
+    padding: 3px 8px; border-radius: 4px;
+    white-space: nowrap;
+    position: absolute; z-index: 50;
+  }
+
+  /* ========= NOTES ========= */
+  .notes {
+    background: #f8fafc; border-top: 1px solid #e2e8f0;
+    padding: 24px; margin-top: 16px;
+  }
+  .notes h3 { font-size: 0.78rem; font-weight: 700; color: #059669; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 10px; }
+  .notes ul { list-style: none; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .notes li { font-size: 0.82rem; color: #64748b; }
+  .notes li strong { color: #0f172a; }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="logo">five<span class="dot">.</span>hints</div>
+  <div class="header-center">
+    <div class="game-chip active">World Geography</div>
+    <div class="game-chip">All Games ▾</div>
+  </div>
+  <div class="header-right">
+    <div class="avatar">PJ</div>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+  <!-- Game meta -->
+  <div class="game-meta">
+    <div class="game-name">World Capitals</div>
+    <div class="entry-count">Entry 7 of 20</div>
+  </div>
+
+  <!-- Progress bar -->
+  <div class="progress-bar-wrap">
+    <div class="progress-bar-track">
+      <div class="progress-bar-fill"></div>
+    </div>
+    <div class="progress-label">
+      <span>6 solved</span>
+      <span>14 remaining</span>
+    </div>
+  </div>
+
+  <!-- Score pills -->
+  <div class="score-pills">
+    <div class="score-pill">
+      <div class="pill-val">6</div>
+      <div class="pill-lbl">Solved</div>
+    </div>
+    <div class="score-pill pts">
+      <div class="pill-val">24</div>
+      <div class="pill-lbl">Points</div>
+    </div>
+    <div class="score-pill">
+      <div class="pill-val">🔥3</div>
+      <div class="pill-lbl">Streak</div>
+    </div>
+  </div>
+
+  <!-- Hints — vertical stack layout -->
+  <div class="hints-stack" style="position:relative;">
+    <div class="ann" style="top:-22px;right:0;">Vertical stack — easier to read on mobile</div>
+
+    <div class="hint-row wrong">
+      <div class="hint-num-badge">1</div>
+      <div class="hint-content">
+        <div class="hint-label">Hint 1</div>
+        <div class="hint-text">Located on the Bosphorus Strait, connecting Europe and Asia.</div>
+      </div>
+      <div class="hint-wrong-badge">✗ Istanbul</div>
+    </div>
+
+    <div class="hint-row wrong">
+      <div class="hint-num-badge">2</div>
+      <div class="hint-content">
+        <div class="hint-label">Hint 2</div>
+        <div class="hint-text">Became the capital in 1923, replacing the empire's former seat.</div>
+      </div>
+      <div class="hint-wrong-badge">✗ Constantinople</div>
+    </div>
+
+    <div class="hint-row active" style="position:relative;">
+      <div class="hint-num-badge">3</div>
+      <div class="hint-content">
+        <div class="hint-label">Hint 3 — Your turn</div>
+        <div class="hint-text">Named for the moon; home to Atatürk Mausoleum and the Grand National Assembly.</div>
+      </div>
+      <div class="ann" style="bottom:-22px;right:0;">Active hint highlighted with green accent</div>
+    </div>
+
+    <div class="hint-row locked">
+      <div class="hint-num-badge">4</div>
+      <div class="hint-content">
+        <div class="hint-label">Hint 4 — Locked</div>
+        <div class="hint-text">Guess or reveal to unlock</div>
+      </div>
+    </div>
+
+    <div class="hint-row locked">
+      <div class="hint-num-badge">5</div>
+      <div class="hint-content">
+        <div class="hint-label">Hint 5 — Locked</div>
+        <div class="hint-text">Guess or reveal to unlock</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Input area -->
+  <div class="input-area">
+    <div class="input-top">
+      <input class="guess-input" type="text" value="Ankara" placeholder="Your answer…">
+      <button class="guess-btn">Guess</button>
+    </div>
+    <div class="input-actions">
+      <div class="wrong-indicator">
+        <div class="attempt-dots">
+          <div class="adot used"></div>
+          <div class="adot used"></div>
+          <div class="adot current"></div>
+          <div class="adot free"></div>
+          <div class="adot free"></div>
+        </div>
+        Attempt 3 of 5
+      </div>
+      <a class="next-hint-link">▸ See next hint (−1 pt)</a>
+    </div>
+  </div>
+
+  <!-- Group play panel -->
+  <div class="group-panel" style="position:relative;">
+    <div class="ann" style="top:-12px;right:0;">Group panel — optional, collapses for solo play</div>
+    <div class="group-header">
+      <div class="group-title">Playing with others</div>
+      <div class="add-player-btn">+ Add player</div>
+    </div>
+    <div class="players-row">
+      <div class="player-chip turn">
+        <div class="player-avatar">PJ</div>
+        Priya <span class="player-pts">24 pts</span>
+      </div>
+      <div class="player-chip">
+        <div class="player-avatar">RK</div>
+        Raj <span class="player-pts">21 pts</span>
+      </div>
+      <div class="player-chip">
+        <div class="player-avatar">SC</div>
+        Sam <span class="player-pts">18 pts</span>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- NOTES -->
+<div class="notes">
+  <h3>Design Notes — Option C: Clean & Casual</h3>
+  <ul>
+    <li>✦ <strong>Light background</strong> — familiar, low-fatigue; great for daytime and longer sessions</li>
+    <li>✦ <strong>Vertical hint stack</strong> — easier to read top-to-bottom on any screen size</li>
+    <li>✦ <strong>Wrong guess shown inline</strong> — your previous guess is shown on the hint row, not in a separate area</li>
+    <li>✦ <strong>Progress bar + pills</strong> — glanceable stats without being visually noisy</li>
+    <li>✦ <strong>Group panel at bottom</strong> — always available but unobtrusive; collapse for solo</li>
+    <li>✦ <strong>Green accent = active</strong> — single accent color creates clear visual hierarchy</li>
+    <li>✦ <strong>Mobile-first layout</strong> — full width single column, easy thumb reach</li>
+    <li>✦ <strong>Attempt dots in input</strong> — lives visible exactly where you type, zero cognitive load</li>
+  </ul>
+</div>
+
+</body>
+</html>

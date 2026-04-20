@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gameplay — Solo Mode</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Inter', sans-serif; background: #f8fafc; color: #0f172a; }
+
+  /* ─── LAYOUT SWITCHER ─── */
+  .switcher {
+    background: #0f172a; color: #fff;
+    padding: 10px 20px;
+    display: flex; align-items: center; gap: 16px;
+    font-size: 0.78rem;
+  }
+  .switcher strong { color: #10b981; }
+  .sw-tabs { display: flex; gap: 6px; margin-left: auto; }
+  .sw-tab {
+    padding: 5px 12px; border-radius: 6px; cursor: pointer;
+    font-size: 0.75rem; font-weight: 600; border: none; font-family: inherit;
+    transition: background 0.15s;
+  }
+  .sw-tab.on { background: #10b981; color: #fff; }
+  .sw-tab.off { background: rgba(255,255,255,0.08); color: #94a3b8; }
+
+  /* ─── HEADER ─── */
+  .app-header {
+    background: #fff;
+    border-bottom: 1px solid #e2e8f0;
+    height: 56px;
+    display: flex; align-items: center;
+    padding: 0 20px; gap: 12px;
+  }
+  .logo { font-size: 1rem; font-weight: 900; color: #0f172a; letter-spacing: -0.02em; flex-shrink: 0; }
+  .logo .dot { color: #10b981; }
+  .header-sep { color: #e2e8f0; }
+
+  /* Breadcrumb navigation — replaces accordion sidebar */
+  .breadcrumb {
+    display: flex; align-items: center; gap: 4px;
+    flex: 1; overflow: hidden;
+  }
+  .bc-item {
+    font-size: 0.8rem; font-weight: 600; color: #94a3b8;
+    white-space: nowrap; cursor: pointer;
+    padding: 4px 6px; border-radius: 6px;
+    transition: color 0.15s, background 0.15s;
+  }
+  .bc-item:hover { color: #0f172a; background: #f1f5f9; }
+  .bc-item.active { color: #059669; }
+  .bc-sep { color: #cbd5e1; font-size: 0.8rem; }
+
+  .header-right { display: flex; align-items: center; gap: 8px; margin-left: auto; flex-shrink: 0; }
+  .mode-toggle {
+    display: flex; background: #f1f5f9; border-radius: 8px; padding: 3px; gap: 2px;
+  }
+  .mt-btn {
+    padding: 5px 12px; border-radius: 6px; font-size: 0.75rem; font-weight: 700;
+    cursor: pointer; border: none; font-family: inherit; transition: all 0.15s;
+  }
+  .mt-btn.on { background: #fff; color: #0f172a; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+  .mt-btn.off { background: transparent; color: #94a3b8; }
+  .avatar {
+    width: 32px; height: 32px; border-radius: 999px;
+    background: linear-gradient(135deg, #10b981, #0d9488);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.7rem; font-weight: 800; color: #fff; cursor: pointer;
+    flex-shrink: 0;
+  }
+
+  /* ─── MAIN ─── */
+  .main {
+    max-width: 680px; margin: 0 auto;
+    padding: 24px 20px 100px;
+  }
+
+  /* Stats row */
+  .stats-row {
+    display: flex; gap: 8px; margin-bottom: 20px;
+  }
+  .stat-pill {
+    flex: 1; background: #fff; border: 1px solid #e2e8f0;
+    border-radius: 12px; padding: 10px 12px;
+    display: flex; flex-direction: column; align-items: center; gap: 2px;
+  }
+  .stat-val { font-size: 1.25rem; font-weight: 900; color: #0f172a; line-height: 1; }
+  .stat-lbl { font-size: 0.62rem; font-weight: 600; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.08em; }
+  .stat-pill.pts .stat-val { color: #10b981; }
+  .stat-pill.streak .stat-val { color: #f59e0b; }
+
+  /* Progress bar */
+  .progress-wrap { margin-bottom: 22px; }
+  .progress-track { height: 5px; background: #e2e8f0; border-radius: 999px; overflow: hidden; }
+  .progress-fill { height: 100%; width: 35%; background: linear-gradient(90deg, #10b981, #34d399); border-radius: 999px; }
+  .progress-meta { display: flex; justify-content: space-between; margin-top: 6px; }
+  .progress-meta span { font-size: 0.7rem; font-weight: 500; color: #94a3b8; }
+
+  /* Game category label */
+  .game-label { margin-bottom: 16px; }
+  .game-label .cat { font-size: 0.68rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.1em; }
+  .game-label .name { font-size: 1.15rem; font-weight: 800; color: #0f172a; margin-top: 2px; }
+
+  /* ─── HINTS STACK ─── */
+  .hints-stack { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
+
+  .hint-row {
+    display: flex; align-items: flex-start; gap: 10px;
+    padding: 13px 14px;
+    border-radius: 12px;
+    background: #fff;
+    border: 1.5px solid #e2e8f0;
+    transition: all 0.2s;
+  }
+  .hint-row.wrong { background: #fff5f5; border-color: #fecaca; }
+  .hint-row.active {
+    background: #f0fdf9; border-color: #6ee7b7;
+    box-shadow: 0 0 0 3px rgba(16,185,129,0.08), 0 2px 8px rgba(16,185,129,0.08);
+  }
+  .hint-row.locked { background: #f8fafc; border-color: #f1f5f9; opacity: 0.5; }
+
+  .hint-num-badge {
+    width: 26px; height: 26px; border-radius: 7px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.7rem; font-weight: 800; margin-top: 1px;
+  }
+  .hint-row.wrong .hint-num-badge { background: #fee2e2; color: #ef4444; }
+  .hint-row.active .hint-num-badge { background: #d1fae5; color: #059669; }
+  .hint-row.locked .hint-num-badge { background: #f1f5f9; color: #94a3b8; }
+  .hint-row:not(.wrong):not(.active):not(.locked) .hint-num-badge { background: #f1f5f9; color: #64748b; }
+
+  .hint-body { flex: 1; min-width: 0; }
+  .hint-label-row { display: flex; align-items: center; gap: 6px; margin-bottom: 3px; }
+  .hint-lbl { font-size: 0.65rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
+  .hint-row.wrong .hint-lbl { color: #ef4444; }
+  .hint-row.active .hint-lbl { color: #059669; }
+  .hint-row.locked .hint-lbl { color: #94a3b8; }
+  .hint-row:not(.wrong):not(.active):not(.locked) .hint-lbl { color: #64748b; }
+
+  .hint-text { font-size: 0.87rem; font-weight: 500; color: #1e293b; line-height: 1.55; }
+  .hint-row.locked .hint-text { color: #94a3b8; font-style: italic; }
+  .hint-row.active .hint-text { color: #0f172a; font-weight: 600; }
+
+  .wrong-guess-tag {
+    flex-shrink: 0; align-self: flex-start; margin-left: auto;
+    padding: 2px 8px; border-radius: 999px;
+    font-size: 0.62rem; font-weight: 700;
+    background: #fee2e2; color: #ef4444;
+    white-space: nowrap;
+  }
+
+  /* ─── INPUT AREA ─── */
+  .input-card {
+    background: #fff; border: 1.5px solid #6ee7b7;
+    border-radius: 16px; padding: 14px;
+    box-shadow: 0 0 0 3px rgba(16,185,129,0.07);
+    margin-bottom: 8px;
+  }
+  .input-row { display: flex; gap: 8px; margin-bottom: 10px; }
+  .guess-input {
+    flex: 1;
+    background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 10px;
+    padding: 11px 14px; font-size: 0.95rem; font-weight: 600; color: #0f172a;
+    outline: none; font-family: inherit;
+    transition: border-color 0.15s;
+  }
+  .guess-input:focus { border-color: #10b981; }
+  .guess-input::placeholder { color: #94a3b8; font-weight: 500; }
+  .guess-btn {
+    padding: 11px 22px; border-radius: 10px; border: none;
+    background: #10b981; color: #fff;
+    font-size: 0.9rem; font-weight: 700; cursor: pointer; font-family: inherit;
+    transition: background 0.15s, transform 0.1s;
+    white-space: nowrap;
+  }
+  .guess-btn:hover { background: #059669; transform: scale(1.02); }
+
+  .input-footer { display: flex; align-items: center; justify-content: space-between; }
+
+  .attempts-indicator { display: flex; align-items: center; gap: 8px; }
+  .att-dots { display: flex; gap: 4px; }
+  .adot { width: 8px; height: 8px; border-radius: 999px; }
+  .adot.used { background: #ef4444; }
+  .adot.now { background: #f59e0b; animation: pulse 1.5s ease-in-out infinite; }
+  .adot.left { background: #e2e8f0; }
+  @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.5; } }
+  .att-text { font-size: 0.75rem; font-weight: 600; color: #94a3b8; }
+
+  .reveal-hint-btn {
+    font-size: 0.75rem; font-weight: 600; color: #94a3b8;
+    cursor: pointer; background: none; border: none; font-family: inherit;
+    transition: color 0.15s; padding: 0;
+    display: flex; align-items: center; gap: 4px;
+  }
+  .reveal-hint-btn:hover { color: #10b981; }
+
+  /* ─── WRONG MESSAGE ─── */
+  .wrong-msg {
+    background: #fff5f5; border: 1px solid #fecaca; border-radius: 10px;
+    padding: 10px 14px; margin-top: 4px;
+    font-size: 0.82rem; font-weight: 600; color: #ef4444;
+    display: flex; align-items: center; gap: 8px;
+  }
+
+  /* ─── NEXT ENTRY (success state) — hidden by default ─── */
+  .next-entry-card {
+    background: #f0fdf4; border: 1.5px solid #86efac;
+    border-radius: 16px; padding: 16px;
+    display: flex; align-items: center; gap: 14px;
+  }
+  .next-check { width: 44px; height: 44px; border-radius: 999px; background: #10b981; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; flex-shrink: 0; }
+  .next-body { flex: 1; }
+  .next-body .next-label { font-size: 0.68rem; font-weight: 700; color: #059669; text-transform: uppercase; letter-spacing: 0.08em; }
+  .next-body .next-answer { font-size: 1.1rem; font-weight: 800; color: #0f172a; margin-top: 2px; }
+  .next-body .next-pts { font-size: 0.8rem; font-weight: 600; color: #10b981; margin-top: 2px; }
+  .next-btn {
+    padding: 10px 20px; border-radius: 10px; border: none;
+    background: #10b981; color: #fff;
+    font-size: 0.88rem; font-weight: 700; cursor: pointer; font-family: inherit;
+  }
+
+  /* ─── MOBILE FAB ─── */
+  .fab {
+    position: fixed; bottom: 24px; right: 20px;
+    width: 52px; height: 52px; border-radius: 999px;
+    background: #10b981; border: none; color: #fff;
+    font-size: 1.4rem; cursor: pointer;
+    box-shadow: 0 4px 16px rgba(16,185,129,0.4);
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  /* ─── ANNOTATIONS ─── */
+  .ann {
+    background: rgba(251,191,36,0.95); color: #000;
+    font-size: 0.68rem; font-weight: 700;
+    padding: 3px 8px; border-radius: 4px;
+    white-space: nowrap; position: absolute; z-index: 50;
+    pointer-events: none;
+  }
+
+  /* ─── VIEW TOGGLE DEMO ─── */
+  #desktop-view { display: block; }
+  #mobile-view { display: none; }
+
+  /* DESKTOP version uses max-width container */
+  /* MOBILE version uses phone frame */
+  .phone-frame {
+    width: 375px; margin: 24px auto;
+    border: 8px solid #0f172a; border-radius: 40px;
+    overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    background: #f8fafc;
+  }
+  .phone-scroll { max-height: 780px; overflow-y: auto; }
+</style>
+</head>
+<body>
+
+<!-- View switcher -->
+<div class="switcher">
+  <div>Viewing: <strong>Gameplay Screen — Solo Mode</strong></div>
+  <div class="sw-tabs">
+    <button class="sw-tab on" onclick="showView('desktop')">Desktop</button>
+    <button class="sw-tab off" onclick="showView('mobile')">Mobile</button>
+  </div>
+</div>
+
+<!-- ════════════ DESKTOP VIEW ════════════ -->
+<div id="desktop-view">
+  <div class="app-header">
+    <div class="logo">five<span class="dot">.</span>hints</div>
+    <span class="header-sep">|</span>
+
+    <!-- Breadcrumb replaces accordion sidebar -->
+    <nav class="breadcrumb" style="position:relative;">
+      <div class="ann" style="top:28px;left:0;">Breadcrumb nav — tap any crumb to switch game</div>
+      <span class="bc-item" onclick="">All Games</span>
+      <span class="bc-sep">›</span>
+      <span class="bc-item">Geography</span>
+      <span class="bc-sep">›</span>
+      <span class="bc-item active">World Capitals</span>
+    </nav>
+
+    <div class="header-right">
+      <div class="mode-toggle" style="position:relative;">
+        <div class="ann" style="top:34px;right:0;">Toggle switches solo ↔ group</div>
+        <button class="mt-btn on">Solo</button>
+        <button class="mt-btn off">Group</button>
+      </div>
+      <div class="avatar">PJ</div>
+    </div>
+  </div>
+
+  <div class="main">
+
+    <!-- Stats -->
+    <div class="stats-row">
+      <div class="stat-pill">
+        <div class="stat-val">6</div>
+        <div class="stat-lbl">Solved</div>
+      </div>
+      <div class="stat-pill pts">
+        <div class="stat-val">24</div>
+        <div class="stat-lbl">Points</div>
+      </div>
+      <div class="stat-pill streak">
+        <div class="stat-val">🔥 3</div>
+        <div class="stat-lbl">Streak</div>
+      </div>
+    </div>
+
+    <!-- Progress -->
+    <div class="progress-wrap" style="position:relative;">
+      <div class="ann" style="top:-20px;right:0;">Progress bar spans full game, not just 5 hints</div>
+      <div class="progress-track">
+        <div class="progress-fill"></div>
+      </div>
+      <div class="progress-meta">
+        <span>Entry 7 of 20</span>
+        <span>6 solved · 14 remaining</span>
+      </div>
+    </div>
+
+    <!-- Game label -->
+    <div class="game-label">
+      <div class="cat">Geography · World Capitals</div>
+      <div class="name">Identify the city from 5 clues</div>
+    </div>
+
+    <!-- Hints -->
+    <div class="hints-stack" style="position:relative;">
+      <div class="ann" style="top:-20px;right:0;">Wrong guess shown inline on the hint row</div>
+
+      <div class="hint-row wrong">
+        <div class="hint-num-badge">1</div>
+        <div class="hint-body">
+          <div class="hint-label-row"><span class="hint-lbl">Hint 1</span></div>
+          <div class="hint-text">Located on the Bosphorus Strait, connecting Europe and Asia.</div>
+        </div>
+        <div class="wrong-guess-tag">✗ Istanbul</div>
+      </div>
+
+      <div class="hint-row wrong">
+        <div class="hint-num-badge">2</div>
+        <div class="hint-body">
+          <div class="hint-label-row"><span class="hint-lbl">Hint 2</span></div>
+          <div class="hint-text">Became the capital in 1923, replacing the empire's former seat of power.</div>
+        </div>
+        <div class="wrong-guess-tag">✗ Constantinople</div>
+      </div>
+
+      <div class="hint-row active" style="position:relative;">
+        <div class="hint-num-badge">3</div>
+        <div class="hint-body">
+          <div class="hint-label-row"><span class="hint-lbl">Hint 3 · Guess now</span></div>
+          <div class="hint-text">Named for the moon in old Turkish; home to the Atatürk Mausoleum and the Grand National Assembly.</div>
+        </div>
+        <div class="ann" style="bottom:-22px;left:36px;">Active hint — green border + glow signals "your turn"</div>
+      </div>
+
+      <div class="hint-row locked">
+        <div class="hint-num-badge">4</div>
+        <div class="hint-body">
+          <div class="hint-label-row"><span class="hint-lbl">Hint 4</span></div>
+          <div class="hint-text">Unlocks on wrong guess</div>
+        </div>
+      </div>
+
+      <div class="hint-row locked">
+        <div class="hint-num-badge">5</div>
+        <div class="hint-body">
+          <div class="hint-label-row"><span class="hint-lbl">Hint 5</span></div>
+          <div class="hint-text">Unlocks on wrong guess</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Input card -->
+    <div class="input-card" style="position:relative;">
+      <div class="ann" style="top:-20px;right:0;">Input card floats at bottom on mobile</div>
+      <div class="input-row">
+        <input class="guess-input" type="text" placeholder="Type your answer…" value="Ankara">
+        <button class="guess-btn">Guess →</button>
+      </div>
+      <div class="input-footer">
+        <div class="attempts-indicator">
+          <div class="att-dots">
+            <div class="adot used"></div>
+            <div class="adot used"></div>
+            <div class="adot now"></div>
+            <div class="adot left"></div>
+            <div class="adot left"></div>
+          </div>
+          <span class="att-text">Attempt 3 of 5</span>
+        </div>
+        <button class="reveal-hint-btn">▸ Reveal next hint (−1 pt)</button>
+      </div>
+    </div>
+
+    <div class="wrong-msg">
+      ✕ "Constantinople" was incorrect — 2 attempts remaining
+    </div>
+
+    <div style="margin-top:24px; border-top:1px solid #e2e8f0; padding-top:24px;">
+      <div style="font-size:0.72rem;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:10px;">Correct answer state (next entry becomes available)</div>
+      <div class="next-entry-card">
+        <div class="next-check">✓</div>
+        <div class="next-body">
+          <div class="next-label">Correct on hint 3!</div>
+          <div class="next-answer">Ankara</div>
+          <div class="next-pts">+3 points · Streak 🔥4</div>
+        </div>
+        <button class="next-btn">Next →</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+
+<!-- ════════════ MOBILE VIEW ════════════ -->
+<div id="mobile-view">
+  <div class="phone-frame">
+    <div class="phone-scroll">
+
+      <!-- Mobile header -->
+      <div style="background:#fff;border-bottom:1px solid #e2e8f0;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;">
+        <div style="font-size:0.95rem;font-weight:900;color:#0f172a;">five<span style="color:#10b981;">.</span>hints</div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <div style="font-size:0.72rem;color:#059669;font-weight:600;background:#ecfdf5;padding:4px 10px;border-radius:999px;border:1px solid #a7f3d0;">World Capitals</div>
+          <div style="width:28px;height:28px;border-radius:999px;background:linear-gradient(135deg,#10b981,#0d9488);display:flex;align-items:center;justify-content:center;font-size:0.62rem;font-weight:800;color:#fff;">PJ</div>
+        </div>
+      </div>
+
+      <!-- Mobile stats -->
+      <div style="display:flex;gap:0;border-bottom:1px solid #e2e8f0;">
+        <div style="flex:1;padding:10px;text-align:center;border-right:1px solid #e2e8f0;">
+          <div style="font-size:1.1rem;font-weight:900;color:#0f172a;">6</div>
+          <div style="font-size:0.6rem;font-weight:600;color:#94a3b8;text-transform:uppercase;letter-spacing:0.08em;">Solved</div>
+        </div>
+        <div style="flex:1;padding:10px;text-align:center;border-right:1px solid #e2e8f0;">
+          <div style="font-size:1.1rem;font-weight:900;color:#10b981;">24</div>
+          <div style="font-size:0.6rem;font-weight:600;color:#94a3b8;text-transform:uppercase;letter-spacing:0.08em;">Points</div>
+        </div>
+        <div style="flex:1;padding:10px;text-align:center;">
+          <div style="font-size:1.1rem;font-weight:900;color:#f59e0b;">🔥3</div>
+          <div style="font-size:0.6rem;font-weight:600;color:#94a3b8;text-transform:uppercase;letter-spacing:0.08em;">Streak</div>
+        </div>
+      </div>
+
+      <!-- Mobile progress -->
+      <div style="padding:12px 16px;background:#fff;border-bottom:1px solid #f1f5f9;">
+        <div style="height:4px;background:#e2e8f0;border-radius:999px;overflow:hidden;">
+          <div style="width:35%;height:100%;background:linear-gradient(90deg,#10b981,#34d399);border-radius:999px;"></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;margin-top:5px;">
+          <span style="font-size:0.65rem;color:#94a3b8;font-weight:500;">Entry 7 of 20</span>
+          <span style="font-size:0.65rem;color:#94a3b8;font-weight:500;">14 remaining</span>
+        </div>
+      </div>
+
+      <!-- Mobile hints -->
+      <div style="padding:12px 14px;display:flex;flex-direction:column;gap:7px;">
+
+        <div style="background:#fff5f5;border:1.5px solid #fecaca;border-radius:10px;padding:10px 12px;display:flex;gap:8px;align-items:flex-start;">
+          <div style="width:22px;height:22px;background:#fee2e2;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:0.62rem;font-weight:800;color:#ef4444;flex-shrink:0;">1</div>
+          <div style="flex:1;">
+            <div style="font-size:0.6rem;font-weight:700;color:#ef4444;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:3px;">Hint 1</div>
+            <div style="font-size:0.82rem;color:#1e293b;line-height:1.5;font-weight:500;">Located on the Bosphorus Strait, connecting Europe and Asia.</div>
+          </div>
+          <div style="padding:2px 6px;background:#fee2e2;color:#ef4444;border-radius:999px;font-size:0.58rem;font-weight:700;white-space:nowrap;flex-shrink:0;">✗ Istanbul</div>
+        </div>
+
+        <div style="background:#fff5f5;border:1.5px solid #fecaca;border-radius:10px;padding:10px 12px;display:flex;gap:8px;align-items:flex-start;">
+          <div style="width:22px;height:22px;background:#fee2e2;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:0.62rem;font-weight:800;color:#ef4444;flex-shrink:0;">2</div>
+          <div style="flex:1;">
+            <div style="font-size:0.6rem;font-weight:700;color:#ef4444;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:3px;">Hint 2</div>
+            <div style="font-size:0.82rem;color:#1e293b;line-height:1.5;font-weight:500;">Became the capital in 1923, replacing the empire's former seat.</div>
+          </div>
+          <div style="padding:2px 6px;background:#fee2e2;color:#ef4444;border-radius:999px;font-size:0.58rem;font-weight:700;white-space:nowrap;flex-shrink:0;">✗ Constan...</div>
+        </div>
+
+        <div style="background:#f0fdf9;border:2px solid #6ee7b7;border-radius:10px;padding:10px 12px;display:flex;gap:8px;align-items:flex-start;box-shadow:0 0 0 3px rgba(16,185,129,0.08);">
+          <div style="width:22px;height:22px;background:#d1fae5;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:0.62rem;font-weight:800;color:#059669;flex-shrink:0;">3</div>
+          <div style="flex:1;">
+            <div style="font-size:0.6rem;font-weight:700;color:#059669;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:3px;">Hint 3 · Guess now</div>
+            <div style="font-size:0.82rem;color:#0f172a;line-height:1.5;font-weight:600;">Named for the moon; home to Atatürk Mausoleum and the Grand National Assembly.</div>
+          </div>
+        </div>
+
+        <div style="background:#f8fafc;border:1.5px solid #f1f5f9;border-radius:10px;padding:10px 12px;display:flex;gap:8px;align-items:center;opacity:0.5;">
+          <div style="width:22px;height:22px;background:#f1f5f9;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:0.62rem;font-weight:800;color:#94a3b8;flex-shrink:0;">4</div>
+          <div style="font-size:0.78rem;color:#94a3b8;font-style:italic;">Unlocks on next wrong guess…</div>
+        </div>
+
+        <div style="background:#f8fafc;border:1.5px solid #f1f5f9;border-radius:10px;padding:10px 12px;display:flex;gap:8px;align-items:center;opacity:0.5;">
+          <div style="width:22px;height:22px;background:#f1f5f9;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:0.62rem;font-weight:800;color:#94a3b8;flex-shrink:0;">5</div>
+          <div style="font-size:0.78rem;color:#94a3b8;font-style:italic;">Unlocks on next wrong guess…</div>
+        </div>
+      </div>
+
+      <!-- Mobile input (sticky bottom) -->
+      <div style="background:#fff;border-top:1px solid #e2e8f0;padding:12px 14px;position:sticky;bottom:0;">
+        <div style="display:flex;gap:8px;margin-bottom:8px;">
+          <input style="flex:1;background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:9px;padding:10px 12px;font-size:0.9rem;font-weight:600;color:#0f172a;font-family:inherit;outline:none;" placeholder="Your answer…" value="Ankara">
+          <button style="padding:10px 18px;background:#10b981;border:none;border-radius:9px;color:#fff;font-size:0.85rem;font-weight:700;font-family:inherit;cursor:pointer;">Go →</button>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;">
+          <div style="display:flex;align-items:center;gap:6px;">
+            <div style="display:flex;gap:3px;">
+              <div style="width:7px;height:7px;border-radius:999px;background:#ef4444;"></div>
+              <div style="width:7px;height:7px;border-radius:999px;background:#ef4444;"></div>
+              <div style="width:7px;height:7px;border-radius:999px;background:#f59e0b;"></div>
+              <div style="width:7px;height:7px;border-radius:999px;background:#e2e8f0;"></div>
+              <div style="width:7px;height:7px;border-radius:999px;background:#e2e8f0;"></div>
+            </div>
+            <span style="font-size:0.7rem;color:#94a3b8;font-weight:500;">3 of 5</span>
+          </div>
+          <span style="font-size:0.7rem;color:#94a3b8;font-weight:600;cursor:pointer;">▸ Next hint (−1pt)</span>
+        </div>
+      </div>
+
+    </div><!-- /phone-scroll -->
+  </div><!-- /phone-frame -->
+</div>
+
+<script>
+function showView(v) {
+  document.getElementById('desktop-view').style.display = v === 'desktop' ? 'block' : 'none';
+  document.getElementById('mobile-view').style.display = v === 'mobile' ? 'block' : 'none';
+  document.querySelectorAll('.sw-tab').forEach((t,i) => {
+    t.className = 'sw-tab ' + ((i===0 && v==='desktop') || (i===1 && v==='mobile') ? 'on' : 'off');
+  });
+}
+</script>
+</body>
+</html>

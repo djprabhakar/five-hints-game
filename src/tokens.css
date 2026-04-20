@@ -1,0 +1,30 @@
+:root {
+  --color-primary: #10b981;
+  --color-primary-dark: #059669;
+  --color-slate-900: #0f172a;
+  --color-page-bg: #f8fafc;
+  --color-card-bg: #ffffff;
+  --color-border: #e2e8f0;
+  --color-red: #ef4444;
+  --color-amber: #f59e0b;
+
+  --color-hint-active-bg: #f0fdf9;
+  --color-hint-active-border: #6ee7b7;
+  --color-hint-wrong-bg: #fff5f5;
+  --color-hint-wrong-border: #fecaca;
+  --color-hint-correct-bg: #f0fdf4;
+  --color-hint-correct-border: #86efac;
+  --color-hint-locked-bg: #f8fafc;
+  --color-hint-locked-border: #f1f5f9;
+
+  --radius-row: 10px;
+  --radius-card: 12px;
+  --radius-panel: 16px;
+  --radius-pill: 999px;
+
+  --shadow-active-input: 0 0 0 3px rgba(16,185,129,0.08);
+
+  --max-w-solo: 680px;
+  --max-w-group: 720px;
+  --max-w-lobby: 560px;
+}

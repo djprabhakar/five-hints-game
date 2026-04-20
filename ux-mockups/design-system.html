@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Design System — Five Hints</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Inter', sans-serif; background: #f8fafc; color: #0f172a; }
+
+  .page { max-width: 960px; margin: 0 auto; padding: 40px 24px; }
+  .page-title { font-size: 1.5rem; font-weight: 900; color: #0f172a; margin-bottom: 6px; }
+  .page-sub { font-size: 0.9rem; color: #64748b; margin-bottom: 40px; }
+
+  .section { margin-bottom: 48px; }
+  .section-label {
+    font-size: 0.7rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase;
+    color: #94a3b8; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px; margin-bottom: 20px;
+  }
+
+  /* ── COLOR PALETTE ── */
+  .palette { display: flex; gap: 12px; flex-wrap: wrap; }
+  .swatch {
+    display: flex; flex-direction: column;
+    border-radius: 12px; overflow: hidden;
+    border: 1px solid #e2e8f0;
+    width: 120px;
+  }
+  .swatch-color { height: 64px; }
+  .swatch-info { padding: 8px 10px; background: #fff; }
+  .swatch-name { font-size: 0.72rem; font-weight: 700; color: #0f172a; }
+  .swatch-hex { font-size: 0.65rem; color: #94a3b8; margin-top: 2px; font-family: monospace; }
+  .swatch-use { font-size: 0.62rem; color: #64748b; margin-top: 3px; }
+
+  /* ── TYPOGRAPHY ── */
+  .type-samples { display: flex; flex-direction: column; gap: 16px; }
+  .type-row { display: flex; align-items: baseline; gap: 20px; padding: 12px 0; border-bottom: 1px solid #f1f5f9; }
+  .type-meta { width: 160px; flex-shrink: 0; }
+  .type-meta .t-name { font-size: 0.72rem; font-weight: 600; color: #94a3b8; }
+  .type-meta .t-spec { font-size: 0.65rem; color: #cbd5e1; font-family: monospace; margin-top: 2px; }
+  .t-display { font-size: 2.5rem; font-weight: 900; letter-spacing: -0.04em; color: #0f172a; }
+  .t-heading { font-size: 1.5rem; font-weight: 800; color: #0f172a; }
+  .t-subhead { font-size: 1.1rem; font-weight: 700; color: #0f172a; }
+  .t-body { font-size: 0.9rem; font-weight: 500; color: #334155; line-height: 1.6; }
+  .t-label { font-size: 0.7rem; font-weight: 700; color: #94a3b8; letter-spacing: 0.1em; text-transform: uppercase; }
+  .t-hint { font-size: 0.88rem; font-weight: 500; color: #1e293b; line-height: 1.55; }
+
+  /* ── SPACING / RADIUS ── */
+  .radius-row { display: flex; gap: 16px; flex-wrap: wrap; align-items: flex-end; }
+  .radius-swatch {
+    background: #fff; border: 1.5px solid #e2e8f0;
+    width: 80px; height: 80px;
+    display: flex; align-items: flex-end; justify-content: center;
+    padding-bottom: 8px;
+  }
+  .radius-label { font-size: 0.65rem; font-weight: 600; color: #94a3b8; font-family: monospace; }
+
+  /* ── BUTTONS ── */
+  .btn-row { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+  .btn {
+    padding: 12px 24px; border-radius: 10px; border: none;
+    font-size: 0.9rem; font-weight: 700; cursor: pointer;
+    font-family: inherit; transition: transform 0.1s;
+    display: inline-flex; align-items: center; gap: 8px;
+  }
+  .btn:hover { transform: scale(1.02); }
+  .btn-primary { background: #10b981; color: #fff; }
+  .btn-secondary { background: #fff; color: #0f172a; border: 1.5px solid #e2e8f0; }
+  .btn-ghost { background: transparent; color: #64748b; border: 1.5px solid #e2e8f0; }
+  .btn-danger { background: #fee2e2; color: #ef4444; }
+  .btn-group-host { background: #0f172a; color: #fff; }
+  .btn-group-join { background: #ecfdf5; color: #059669; border: 1.5px solid #a7f3d0; }
+  .btn-sm { padding: 7px 14px; font-size: 0.78rem; border-radius: 8px; }
+  .btn-lg { padding: 16px 32px; font-size: 1rem; border-radius: 12px; }
+
+  /* ── HINT CARDS ── */
+  .hint-states { display: grid; grid-template-columns: repeat(5,1fr); gap: 10px; }
+  .hc {
+    border-radius: 14px; padding: 14px 12px; min-height: 110px;
+    display: flex; flex-direction: column;
+    border: 1.5px solid #e2e8f0;
+  }
+  .hc-num { font-size: 0.62rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 6px; }
+  .hc-text { font-size: 0.82rem; line-height: 1.5; flex: 1; }
+  .hc-badge { margin-top: 8px; align-self: flex-start; padding: 2px 7px; border-radius: 999px; font-size: 0.6rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }
+
+  .hc-locked { background: #f8fafc; opacity: 0.5; }
+  .hc-locked .hc-num { color: #94a3b8; }
+  .hc-locked .hc-text { color: #94a3b8; }
+
+  .hc-revealed { background: #fff; }
+  .hc-revealed .hc-num { color: #64748b; }
+  .hc-revealed .hc-text { color: #1e293b; }
+
+  .hc-active {
+    background: #f0fdf9;
+    border-color: #6ee7b7;
+    box-shadow: 0 0 0 3px rgba(16,185,129,0.08);
+  }
+  .hc-active .hc-num { color: #059669; }
+  .hc-active .hc-text { color: #0f172a; font-weight: 600; }
+  .hc-active .hc-badge { background: #d1fae5; color: #059669; }
+
+  .hc-wrong {
+    background: #fff5f5;
+    border-color: #fecaca;
+  }
+  .hc-wrong .hc-num { color: #ef4444; }
+  .hc-wrong .hc-text { color: #1e293b; }
+  .hc-wrong .hc-badge { background: #fee2e2; color: #ef4444; }
+
+  .hc-correct {
+    background: #f0fdf4;
+    border-color: #86efac;
+  }
+  .hc-correct .hc-num { color: #16a34a; }
+  .hc-correct .hc-text { color: #1e293b; }
+  .hc-correct .hc-badge { background: #dcfce7; color: #16a34a; }
+
+  /* ── STATUS INDICATORS ── */
+  .status-row { display: flex; gap: 12px; flex-wrap: wrap; }
+  .status-chip {
+    padding: 6px 14px; border-radius: 999px;
+    font-size: 0.75rem; font-weight: 600;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .status-dot { width: 7px; height: 7px; border-radius: 999px; }
+  .s-waiting { background: #fef9c3; color: #a16207; }
+  .s-waiting .status-dot { background: #fbbf24; }
+  .s-playing { background: #ecfdf5; color: #059669; }
+  .s-playing .status-dot { background: #10b981; box-shadow: 0 0 5px #10b981; }
+  .s-submitted { background: #f0f9ff; color: #0284c7; }
+  .s-submitted .status-dot { background: #38bdf8; }
+  .s-correct { background: #f0fdf4; color: #16a34a; }
+  .s-correct .status-dot { background: #22c55e; }
+  .s-wrong { background: #fff1f2; color: #e11d48; }
+  .s-wrong .status-dot { background: #f43f5e; }
+
+  /* ── PLAYER CHIPS ── */
+  .player-chips { display: flex; gap: 10px; flex-wrap: wrap; }
+  .pc {
+    display: flex; align-items: center; gap: 8px;
+    padding: 8px 14px; border-radius: 12px;
+    border: 1.5px solid #e2e8f0;
+    background: #fff;
+  }
+  .pc.host { border-color: #0f172a; background: #0f172a; color: #fff; }
+  .pc.active-turn { border-color: #6ee7b7; background: #ecfdf5; }
+  .pc-av {
+    width: 28px; height: 28px; border-radius: 999px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.68rem; font-weight: 800;
+  }
+  .pc.host .pc-av { background: rgba(255,255,255,0.15); color: #fff; }
+  .pc.active-turn .pc-av { background: #10b981; color: #fff; }
+  .pc:not(.host):not(.active-turn) .pc-av { background: #f1f5f9; color: #64748b; }
+  .pc-name { font-size: 0.82rem; font-weight: 600; }
+  .pc.host .pc-name { color: #fff; }
+  .pc.active-turn .pc-name { color: #059669; }
+  .pc:not(.host):not(.active-turn) .pc-name { color: #334155; }
+  .pc-score { font-size: 0.72rem; font-weight: 700; color: #94a3b8; }
+  .pc.host .pc-score { color: rgba(255,255,255,0.5); }
+  .pc.active-turn .pc-score { color: #10b981; }
+  .pc-badge {
+    padding: 2px 7px; border-radius: 999px;
+    font-size: 0.6rem; font-weight: 700; text-transform: uppercase;
+    background: rgba(255,255,255,0.15); color: rgba(255,255,255,0.8);
+  }
+
+  /* ── MODES ── */
+  .mode-toggle {
+    display: inline-flex;
+    background: #f1f5f9; border-radius: 10px; padding: 4px; gap: 2px;
+  }
+  .mode-btn {
+    padding: 8px 18px; border-radius: 7px;
+    font-size: 0.82rem; font-weight: 700; cursor: pointer;
+    border: none; font-family: inherit;
+    transition: all 0.15s;
+  }
+  .mode-btn.on { background: #fff; color: #0f172a; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+  .mode-btn.off { background: transparent; color: #94a3b8; }
+
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="page-title">Five Hints — Design System</div>
+  <div class="page-sub">Visual foundation for the redesign. Option C (Clean & Casual) base + Option A group features.</div>
+
+  <!-- COLOR -->
+  <div class="section">
+    <div class="section-label">Color Palette</div>
+    <div class="palette">
+      <div class="swatch">
+        <div class="swatch-color" style="background:#10b981;"></div>
+        <div class="swatch-info">
+          <div class="swatch-name">Emerald 500</div>
+          <div class="swatch-hex">#10b981</div>
+          <div class="swatch-use">Primary action, active state</div>
+        </div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-color" style="background:#059669;"></div>
+        <div class="swatch-info">
+          <div class="swatch-name">Emerald 600</div>
+          <div class="swatch-hex">#059669</div>
+          <div class="swatch-use">Hover, pressed state</div>
+        </div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-color" style="background:#0f172a;"></div>
+        <div class="swatch-info">
+          <div class="swatch-name">Slate 900</div>
+          <div class="swatch-hex">#0f172a</div>
+          <div class="swatch-use">Headings, host badge</div>
+        </div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-color" style="background:#f8fafc;"></div>
+        <div class="swatch-info">
+          <div class="swatch-name">Slate 50</div>
+          <div class="swatch-hex">#f8fafc</div>
+          <div class="swatch-use">Page background</div>
+        </div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-color" style="background:#ffffff;border-top:1px solid #e2e8f0;"></div>
+        <div class="swatch-info">
+          <div class="swatch-name">White</div>
+          <div class="swatch-hex">#ffffff</div>
+          <div class="swatch-use">Cards, panels</div>
+        </div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-color" style="background:#ef4444;"></div>
+        <div class="swatch-info">
+          <div class="swatch-name">Red 500</div>
+          <div class="swatch-hex">#ef4444</div>
+          <div class="swatch-use">Wrong guess</div>
+        </div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-color" style="background:#f59e0b;"></div>
+        <div class="swatch-info">
+          <div class="swatch-name">Amber 500</div>
+          <div class="swatch-hex">#f59e0b</div>
+          <div class="swatch-use">Streak, waiting state</div>
+        </div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-color" style="background:#e2e8f0;"></div>
+        <div class="swatch-info">
+          <div class="swatch-name">Slate 200</div>
+          <div class="swatch-hex">#e2e8f0</div>
+          <div class="swatch-use">Borders, dividers</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TYPOGRAPHY -->
+  <div class="section">
+    <div class="section-label">Typography — Inter</div>
+    <div class="type-samples">
+      <div class="type-row">
+        <div class="type-meta"><div class="t-name">Display</div><div class="t-spec">48px / 900 / −0.04em</div></div>
+        <div class="t-display">World Capitals</div>
+      </div>
+      <div class="type-row">
+        <div class="type-meta"><div class="t-name">Heading</div><div class="t-spec">24px / 800</div></div>
+        <div class="t-heading">Guess, you have 5 hints</div>
+      </div>
+      <div class="type-row">
+        <div class="type-meta"><div class="t-name">Subheading</div><div class="t-spec">18px / 700</div></div>
+        <div class="t-subhead">Entry 7 of 20 · Geography</div>
+      </div>
+      <div class="type-row">
+        <div class="type-meta"><div class="t-name">Hint text</div><div class="t-spec">14px / 500 / 1.55lh</div></div>
+        <div class="t-hint">Located on the Bosphorus Strait, connecting Europe and Asia at a historic crossroads.</div>
+      </div>
+      <div class="type-row">
+        <div class="type-meta"><div class="t-name">Label</div><div class="t-spec">11px / 700 / +0.1em</div></div>
+        <div class="t-label">Hint 3 · Active</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- HINT CARD STATES -->
+  <div class="section">
+    <div class="section-label">Hint Card States</div>
+    <div class="hint-states">
+      <div class="hc hc-locked">
+        <div class="hc-num">Hint 1</div>
+        <div class="hc-text" style="color:#94a3b8;font-size:1.4rem;text-align:center;margin:auto;">🔒</div>
+      </div>
+      <div class="hc hc-revealed">
+        <div class="hc-num">Hint 2</div>
+        <div class="hc-text">Capital since 1923, replacing the empire's former seat.</div>
+      </div>
+      <div class="hc hc-active">
+        <div class="hc-num">Hint 3</div>
+        <div class="hc-text">Named for the moon; home to Atatürk Mausoleum.</div>
+        <div class="hc-badge">Active</div>
+      </div>
+      <div class="hc hc-wrong">
+        <div class="hc-num">Hint 1</div>
+        <div class="hc-text">Located on the Bosphorus Strait.</div>
+        <div class="hc-badge">✗ Istanbul</div>
+      </div>
+      <div class="hc hc-correct">
+        <div class="hc-num">Hint 3</div>
+        <div class="hc-text">Named for the moon; home to Atatürk Mausoleum.</div>
+        <div class="hc-badge">✓ Correct</div>
+      </div>
+    </div>
+    <div style="display:flex;gap:16px;margin-top:12px;flex-wrap:wrap;">
+      <span style="font-size:0.72rem;color:#94a3b8;">⬜ Locked &nbsp;·&nbsp; ⬜ Revealed &nbsp;·&nbsp; <span style="color:#059669;">⬜ Active</span> &nbsp;·&nbsp; <span style="color:#ef4444;">⬜ Wrong guess</span> &nbsp;·&nbsp; <span style="color:#16a34a;">⬜ Correct</span></span>
+    </div>
+  </div>
+
+  <!-- BUTTONS -->
+  <div class="section">
+    <div class="section-label">Buttons</div>
+    <div class="btn-row" style="margin-bottom:12px;">
+      <button class="btn btn-primary btn-lg">Guess →</button>
+      <button class="btn btn-primary">Submit Answer</button>
+      <button class="btn btn-secondary">Next Entry</button>
+      <button class="btn btn-ghost">Skip Hint</button>
+      <button class="btn btn-danger btn-sm">Leave Game</button>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-group-host">Host a Group Game</button>
+      <button class="btn btn-group-join">Join with Code</button>
+      <button class="btn btn-secondary btn-sm">Share Link 🔗</button>
+    </div>
+  </div>
+
+  <!-- PLAYER CHIPS -->
+  <div class="section">
+    <div class="section-label">Player Chips (Group Mode)</div>
+    <div class="player-chips">
+      <div class="pc host">
+        <div class="pc-av">PJ</div>
+        <div>
+          <div class="pc-name">Priya</div>
+          <div class="pc-score">24 pts</div>
+        </div>
+        <div class="pc-badge">Host</div>
+      </div>
+      <div class="pc active-turn">
+        <div class="pc-av">RK</div>
+        <div>
+          <div class="pc-name">Raj</div>
+          <div class="pc-score">21 pts</div>
+        </div>
+      </div>
+      <div class="pc">
+        <div class="pc-av">SC</div>
+        <div>
+          <div class="pc-name">Sam</div>
+          <div class="pc-score">18 pts</div>
+        </div>
+      </div>
+      <div class="pc">
+        <div class="pc-av">AM</div>
+        <div>
+          <div class="pc-name">Anya</div>
+          <div class="pc-score">15 pts</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STATUS INDICATORS -->
+  <div class="section">
+    <div class="section-label">Player Status Indicators (Group Mode)</div>
+    <div class="status-row">
+      <div class="status-chip s-waiting"><div class="status-dot"></div>Waiting to start</div>
+      <div class="status-chip s-playing"><div class="status-dot"></div>Playing</div>
+      <div class="status-chip s-submitted"><div class="status-dot"></div>Submitted</div>
+      <div class="status-chip s-correct"><div class="status-dot"></div>Got it! ✓</div>
+      <div class="status-chip s-wrong"><div class="status-dot"></div>Incorrect</div>
+    </div>
+  </div>
+
+  <!-- MODES -->
+  <div class="section">
+    <div class="section-label">Mode Toggle</div>
+    <div class="mode-toggle">
+      <button class="mode-btn on">Solo</button>
+      <button class="mode-btn off">Group</button>
+    </div>
+    &nbsp;&nbsp;
+    <div class="mode-toggle">
+      <button class="mode-btn off">Solo</button>
+      <button class="mode-btn on">Group</button>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

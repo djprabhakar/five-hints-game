@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Option B — Game Show</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap');
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Inter', 'Segoe UI', sans-serif;
+    background: #060810;
+    color: #f1f5f9;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Spotlight background effect */
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0; left: 50%; transform: translateX(-50%);
+    width: 800px; height: 600px;
+    background: radial-gradient(ellipse at 50% 0%, rgba(217,119,6,0.12) 0%, transparent 70%);
+    pointer-events: none; z-index: 0;
+  }
+
+  /* ========= HEADER ========= */
+  .header {
+    position: relative; z-index: 10;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 40px;
+    height: 64px;
+    background: #060810;
+    border-bottom: 1px solid rgba(217,119,6,0.15);
+  }
+
+  .logo {
+    font-size: 1.1rem; font-weight: 900; letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: #fbbf24;
+    text-shadow: 0 0 20px rgba(251,191,36,0.5);
+  }
+  .logo span { color: rgba(251,191,36,0.4); font-size: 0.85em; margin: 0 6px; }
+
+  .header-meta {
+    display: flex; align-items: center; gap: 20px;
+  }
+  .header-pill {
+    padding: 6px 14px; border-radius: 999px;
+    font-size: 0.75rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+  }
+  .pill-game { background: rgba(217,119,6,0.12); border: 1px solid rgba(217,119,6,0.3); color: #fbbf24; }
+  .pill-entry { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #94a3b8; }
+
+  .avatar-btn {
+    width: 36px; height: 36px; border-radius: 999px;
+    background: linear-gradient(135deg, #d97706, #b45309);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.78rem; font-weight: 800; color: #fff; cursor: pointer;
+  }
+
+  /* ========= SCORE ROW ========= */
+  .score-row {
+    position: relative; z-index: 10;
+    display: flex; justify-content: center; gap: 40px;
+    padding: 16px 40px;
+    background: rgba(217,119,6,0.05);
+    border-bottom: 1px solid rgba(217,119,6,0.1);
+  }
+  .score-block { text-align: center; }
+  .score-block .val {
+    font-size: 2.2rem; font-weight: 900; line-height: 1;
+    color: #fbbf24;
+    text-shadow: 0 0 20px rgba(251,191,36,0.4);
+  }
+  .score-block .lbl {
+    font-size: 0.68rem; font-weight: 600; color: #6b7280;
+    text-transform: uppercase; letter-spacing: 0.1em; margin-top: 4px;
+  }
+  .score-divider { width: 1px; background: rgba(255,255,255,0.06); align-self: stretch; }
+
+  /* ========= STAGE ========= */
+  .stage {
+    position: relative; z-index: 10;
+    max-width: 960px; margin: 0 auto;
+    padding: 40px 40px 20px;
+  }
+
+  /* Category & game label */
+  .category-crumb {
+    display: flex; align-items: center; gap: 8px;
+    margin-bottom: 20px;
+  }
+  .crumb-item { font-size: 0.78rem; color: #6b7280; letter-spacing: 0.04em; }
+  .crumb-sep { color: #374151; }
+  .crumb-current { color: #d97706; font-weight: 600; }
+
+  /* Word prompt */
+  .word-prompt {
+    text-align: center;
+    margin-bottom: 32px;
+  }
+  .word-prompt .question-mark {
+    font-size: 5rem; font-weight: 900; line-height: 1;
+    color: transparent;
+    background: linear-gradient(180deg, #fbbf24, #d97706);
+    -webkit-background-clip: text; background-clip: text;
+    text-shadow: none;
+    letter-spacing: -0.05em;
+    display: block; margin-bottom: 8px;
+    filter: drop-shadow(0 0 30px rgba(217,119,6,0.5));
+  }
+  .word-prompt .subtitle { font-size: 0.9rem; color: #6b7280; }
+  .word-prompt .subtitle em { color: #d97706; font-style: normal; }
+
+  /* ========= HINTS ========= */
+  .hints-container {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 10px;
+    margin-bottom: 28px;
+  }
+
+  .hint-envelope {
+    border-radius: 12px;
+    overflow: hidden;
+    position: relative;
+    transition: transform 0.2s;
+  }
+
+  /* Sealed (locked) */
+  .env-sealed {
+    background: #0d1117;
+    border: 1px solid rgba(255,255,255,0.06);
+    padding: 20px 12px;
+    min-height: 130px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    opacity: 0.4;
+  }
+  .env-sealed .env-num { font-size: 0.65rem; color: #374151; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 12px; }
+  .env-sealed .lock { font-size: 1.8rem; opacity: 0.3; }
+
+  /* Open (revealed) */
+  .env-open {
+    background: #0e1420;
+    border: 1px solid rgba(217,119,6,0.25);
+    padding: 14px 12px;
+    min-height: 130px;
+    display: flex; flex-direction: column;
+  }
+  .env-open .env-num {
+    font-size: 0.62rem; font-weight: 700; color: #d97706;
+    text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 8px;
+  }
+  .env-open .env-text { font-size: 0.82rem; color: #cbd5e1; line-height: 1.5; flex: 1; }
+  .env-open .env-badge {
+    margin-top: 8px; align-self: flex-start;
+    padding: 2px 8px; border-radius: 999px;
+    font-size: 0.62rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em;
+  }
+  .badge-wrong { background: rgba(239,68,68,0.15); color: #f87171; }
+
+  /* Active */
+  .env-active {
+    background: linear-gradient(160deg, #0f1c0a, #141a10);
+    border: 1px solid rgba(217,119,6,0.6);
+    box-shadow: 0 0 28px rgba(217,119,6,0.25), inset 0 0 16px rgba(217,119,6,0.05);
+    padding: 14px 12px;
+    min-height: 130px;
+    display: flex; flex-direction: column;
+    transform: translateY(-4px);
+  }
+  .env-active .env-num {
+    font-size: 0.62rem; font-weight: 700; color: #fbbf24;
+    text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 8px;
+  }
+  .env-active .env-text { font-size: 0.82rem; color: #fff; font-weight: 600; line-height: 1.5; flex: 1; }
+  .env-active-tag {
+    margin-top: 8px; align-self: flex-start;
+    padding: 2px 8px; border-radius: 999px;
+    font-size: 0.62rem; font-weight: 700; text-transform: uppercase;
+    background: rgba(217,119,6,0.2); color: #fbbf24;
+  }
+
+  /* ========= ANSWER ZONE ========= */
+  .answer-zone {
+    max-width: 600px; margin: 0 auto;
+    text-align: center;
+  }
+
+  .attempts-row {
+    display: flex; justify-content: center; gap: 8px; margin-bottom: 20px;
+  }
+  .att-bubble {
+    width: 10px; height: 10px; border-radius: 999px;
+    transition: background 0.2s;
+  }
+  .att-used { background: #ef4444; box-shadow: 0 0 6px rgba(239,68,68,0.5); }
+  .att-current { background: #fbbf24; box-shadow: 0 0 6px rgba(251,191,36,0.6); }
+  .att-remaining { background: rgba(255,255,255,0.12); }
+
+  .answer-input-wrap {
+    position: relative; margin-bottom: 14px;
+  }
+  .answer-input {
+    width: 100%;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(217,119,6,0.35);
+    border-radius: 12px;
+    padding: 18px 140px 18px 20px;
+    font-size: 1.15rem; font-weight: 600; color: #fff;
+    outline: none; letter-spacing: 0.02em;
+  }
+  .answer-input:focus { border-color: #d97706; box-shadow: 0 0 16px rgba(217,119,6,0.2); }
+  .guess-btn {
+    position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
+    padding: 10px 22px; border-radius: 8px;
+    background: linear-gradient(135deg, #d97706, #b45309);
+    border: none; color: #fff; font-size: 0.85rem; font-weight: 800;
+    cursor: pointer; letter-spacing: 0.04em; text-transform: uppercase;
+  }
+
+  .hint-cost {
+    font-size: 0.8rem; color: #4b5563;
+    margin-top: 8px; cursor: pointer;
+    transition: color 0.15s;
+  }
+  .hint-cost:hover { color: #d97706; }
+
+  .wrong-msg {
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    margin-top: 12px; padding: 12px 20px;
+    background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.2);
+    border-radius: 10px;
+    font-size: 0.88rem; font-weight: 600; color: #f87171;
+  }
+
+  /* ========= ANNOTATIONS ========= */
+  .ann {
+    position: absolute;
+    background: rgba(251,191,36,0.92);
+    color: #000;
+    font-size: 0.7rem; font-weight: 700;
+    padding: 3px 8px; border-radius: 4px;
+    z-index: 50;
+    white-space: nowrap;
+  }
+
+  /* ========= NOTES ========= */
+  .design-notes {
+    background: #060810;
+    border-top: 1px solid rgba(217,119,6,0.15);
+    padding: 24px 40px;
+    margin-top: 20px;
+  }
+  .design-notes h3 { color: #d97706; font-size: 0.8rem; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 12px; }
+  .design-notes ul { list-style: none; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .design-notes li { color: #6b7280; font-size: 0.83rem; }
+  .design-notes li strong { color: #e2e8f0; }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="logo">five <span>✦</span> hints</div>
+  <div class="header-meta">
+    <span class="header-pill pill-game">World Geography</span>
+    <span class="header-pill pill-entry">Entry 7 / 20</span>
+    <div class="avatar-btn">PJ</div>
+  </div>
+</div>
+
+<!-- SCORE ROW -->
+<div class="score-row">
+  <div class="score-block">
+    <div class="val">6</div>
+    <div class="lbl">Solved</div>
+  </div>
+  <div class="score-divider"></div>
+  <div class="score-block">
+    <div class="val">24</div>
+    <div class="lbl">Points</div>
+  </div>
+  <div class="score-divider"></div>
+  <div class="score-block">
+    <div class="val">3</div>
+    <div class="lbl">Attempt</div>
+  </div>
+  <div class="score-divider"></div>
+  <div class="score-block">
+    <div class="val">🔥3</div>
+    <div class="lbl">Streak</div>
+  </div>
+</div>
+
+<!-- STAGE -->
+<div class="stage">
+
+  <!-- Crumbs -->
+  <div class="category-crumb">
+    <span class="crumb-item">Play</span>
+    <span class="crumb-sep">›</span>
+    <span class="crumb-item">Geography</span>
+    <span class="crumb-sep">›</span>
+    <span class="crumb-current">World Capitals</span>
+  </div>
+
+  <!-- Word prompt -->
+  <div class="word-prompt" style="position:relative;">
+    <span class="question-mark">?</span>
+    <div class="subtitle">Identify the <em>World Capital</em> from the clues below</div>
+    <div class="ann" style="top:20px;right:0;">Dramatic question mark = focus on the mystery</div>
+  </div>
+
+  <!-- Hints -->
+  <div class="hints-container" style="position:relative;">
+    <div class="ann" style="top:-22px;left:0;">Hint "envelopes" open one by one — sealed until earned</div>
+
+    <!-- Hint 1 — open, wrong -->
+    <div class="hint-envelope env-open">
+      <div class="env-num">Clue 1</div>
+      <div class="env-text">Located on the Bosphorus Strait, connecting Europe and Asia.</div>
+      <div class="env-badge badge-wrong">✗ Guessed "Istanbul"</div>
+    </div>
+
+    <!-- Hint 2 — open, wrong -->
+    <div class="hint-envelope env-open">
+      <div class="env-num">Clue 2</div>
+      <div class="env-text">Capital since 1923, replacing the empire's former seat.</div>
+      <div class="env-badge badge-wrong">✗ Guessed "Constantinople"</div>
+    </div>
+
+    <!-- Hint 3 — active -->
+    <div class="hint-envelope env-active" style="position:relative;">
+      <div class="env-num">Clue 3 ← Now</div>
+      <div class="env-text">Named for the moon in old Turkish; home to Atatürk Mausoleum.</div>
+      <div class="env-active-tag">Your turn</div>
+    </div>
+
+    <!-- Hint 4 — sealed -->
+    <div class="hint-envelope env-sealed">
+      <div class="env-num">Clue 4</div>
+      <div class="lock">✉</div>
+    </div>
+
+    <!-- Hint 5 — sealed -->
+    <div class="hint-envelope env-sealed">
+      <div class="env-num">Clue 5</div>
+      <div class="lock">✉</div>
+    </div>
+  </div>
+
+  <!-- Answer zone -->
+  <div class="answer-zone" style="position:relative;">
+    <div class="ann" style="top:-10px;right:-10px;">Attempt bubbles show lives remaining</div>
+    <div class="attempts-row">
+      <div class="att-bubble att-used"></div>
+      <div class="att-bubble att-used"></div>
+      <div class="att-bubble att-current"></div>
+      <div class="att-bubble att-remaining"></div>
+      <div class="att-bubble att-remaining"></div>
+    </div>
+    <div class="answer-input-wrap">
+      <input class="answer-input" type="text" placeholder="Enter your answer…" value="Ankara">
+      <button class="guess-btn">Confirm</button>
+    </div>
+    <div class="hint-cost">▸ Reveal next clue (costs 1 point)</div>
+    <div class="wrong-msg">
+      ✕ "Constantinople" was not correct — 2 attempts remaining
+    </div>
+  </div>
+
+</div>
+
+<!-- DESIGN NOTES -->
+<div class="design-notes">
+  <h3>Design Notes — Option B: Game Show (Premium / Cinematic)</h3>
+  <ul>
+    <li>✦ <strong>Spotlight atmosphere</strong> — subtle radial glow from top gives TV-show "stage light" feel</li>
+    <li>✦ <strong>Sealed envelopes</strong> — locked hints look like unopened envelopes, adding dramatic reveal</li>
+    <li>✦ <strong>Score bar below header</strong> — metrics always visible but not competing with the question</li>
+    <li>✦ <strong>Attempt bubbles</strong> — visual "lives" system familiar from games, creates tension</li>
+    <li>✦ <strong>Active hint elevated</strong> — current clue card lifts up (translateY) to draw eye</li>
+    <li>✦ <strong>Group play</strong> — add a player switcher in the score bar; one device, pass-and-play</li>
+    <li>✦ <strong>Color economy</strong> — gold only used for important things (score, active hint, logo)</li>
+    <li>✦ <strong>Breadcrumb navigation</strong> — replaces the accordion sidebar; cleaner and faster</li>
+  </ul>
+</div>
+
+</body>
+</html>

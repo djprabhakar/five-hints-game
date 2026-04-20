@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Create Mode — Five Hints</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Inter', sans-serif; background: #f8fafc; color: #0f172a; }
+
+  /* ─── STEP NAV ─── */
+  .top-nav {
+    background: #0f172a; color: #fff;
+    padding: 0; display: flex; overflow: hidden;
+  }
+  .nav-step {
+    flex: 1; padding: 12px 8px; text-align: center;
+    font-size: 0.75rem; font-weight: 700; cursor: pointer;
+    border-right: 1px solid rgba(255,255,255,0.08);
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+    transition: background 0.15s; color: #64748b;
+  }
+  .nav-step.active { background: #10b981; color: #fff; }
+  .nav-step:last-child { border-right: none; }
+  .nav-num {
+    width: 20px; height: 20px; border-radius: 999px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.65rem; font-weight: 900;
+    background: rgba(255,255,255,0.1); flex-shrink: 0;
+  }
+  .nav-step.active .nav-num { background: rgba(255,255,255,0.3); }
+
+  /* ─── HEADER ─── */
+  .app-header {
+    background: #fff; border-bottom: 1px solid #e2e8f0;
+    height: 56px; display: flex; align-items: center;
+    padding: 0 20px; gap: 12px;
+  }
+  .logo { font-size: 1rem; font-weight: 900; color: #0f172a; }
+  .logo .dot { color: #10b981; }
+  .header-sep { color: #e2e8f0; }
+  .bc-item { font-size: 0.8rem; font-weight: 600; color: #94a3b8; padding: 4px 6px; border-radius: 6px; }
+  .bc-item.active { color: #059669; }
+  .bc-sep { color: #cbd5e1; font-size: 0.8rem; }
+  .header-right { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+  .mode-toggle { display: flex; background: #f1f5f9; border-radius: 8px; padding: 3px; gap: 2px; }
+  .mt-btn { padding: 5px 12px; border-radius: 6px; font-size: 0.75rem; font-weight: 700; cursor: pointer; border: none; font-family: inherit; }
+  .mt-btn.on { background: #fff; color: #0f172a; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+  .mt-btn.off { background: transparent; color: #94a3b8; }
+  .avatar { width: 32px; height: 32px; border-radius: 999px; background: linear-gradient(135deg,#10b981,#0d9488); display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 800; color: #fff; cursor: pointer; }
+
+  /* ─── SCREENS ─── */
+  .screen { display: none; }
+  .screen.active { display: block; }
+
+  /* ─── SHARED LAYOUT ─── */
+  .main { max-width: 600px; margin: 0 auto; padding: 28px 20px 60px; }
+  .section-header { margin-bottom: 20px; }
+  .section-header h2 { font-size: 1.2rem; font-weight: 900; color: #0f172a; }
+  .section-header p { font-size: 0.85rem; color: #64748b; margin-top: 4px; line-height: 1.5; }
+
+  /* ─── FORM ELEMENTS ─── */
+  .form-card {
+    background: #fff; border: 1px solid #e2e8f0;
+    border-radius: 16px; padding: 20px; margin-bottom: 12px;
+  }
+  .form-group { margin-bottom: 16px; }
+  .form-group:last-child { margin-bottom: 0; }
+  .form-label {
+    font-size: 0.7rem; font-weight: 700; color: #64748b;
+    text-transform: uppercase; letter-spacing: 0.08em;
+    margin-bottom: 6px; display: block;
+  }
+  .form-label .optional {
+    font-weight: 500; color: #94a3b8; text-transform: none; letter-spacing: 0; font-size: 0.68rem;
+  }
+  .form-input {
+    width: 100%; background: #f8fafc; border: 1.5px solid #e2e8f0;
+    border-radius: 10px; padding: 11px 14px;
+    font-size: 0.9rem; font-weight: 600; color: #0f172a;
+    outline: none; font-family: inherit; transition: border-color 0.15s;
+  }
+  .form-input:focus { border-color: #10b981; }
+  .form-input::placeholder { color: #94a3b8; font-weight: 500; }
+  .form-select {
+    width: 100%; background: #f8fafc; border: 1.5px solid #e2e8f0;
+    border-radius: 10px; padding: 11px 14px;
+    font-size: 0.9rem; font-weight: 600; color: #0f172a;
+    outline: none; font-family: inherit; cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%2394a3b8' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 14px center;
+  }
+  .form-textarea {
+    width: 100%; background: #f8fafc; border: 1.5px solid #e2e8f0;
+    border-radius: 10px; padding: 11px 14px;
+    font-size: 0.88rem; font-weight: 500; color: #0f172a; line-height: 1.55;
+    outline: none; font-family: inherit; resize: vertical; min-height: 80px;
+    transition: border-color 0.15s;
+  }
+  .form-textarea:focus { border-color: #10b981; }
+  .form-hint { font-size: 0.72rem; color: #94a3b8; margin-top: 5px; line-height: 1.4; }
+
+  /* ─── CATEGORY SELECTOR ─── */
+  .cat-options { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .cat-chip {
+    padding: 10px 14px; border-radius: 10px;
+    border: 1.5px solid #e2e8f0; background: #f8fafc;
+    font-size: 0.82rem; font-weight: 600; color: #475569;
+    cursor: pointer; text-align: left; font-family: inherit;
+    transition: all 0.15s; display: flex; align-items: center; gap: 8px;
+  }
+  .cat-chip:hover { border-color: #a7f3d0; background: #f0fdf4; color: #059669; }
+  .cat-chip.selected { border-color: #6ee7b7; background: #ecfdf5; color: #059669; }
+  .cat-chip.new-cat { border-style: dashed; color: #94a3b8; }
+  .cat-chip.new-cat:hover { border-color: #10b981; color: #059669; background: #f0fdf4; }
+  .cat-icon { font-size: 1rem; flex-shrink: 0; }
+
+  /* new category inline input */
+  .new-cat-input-wrap { margin-top: 8px; display: none; }
+  .new-cat-input-wrap.visible { display: block; }
+
+  /* ─── GAME TYPE EXAMPLES ─── */
+  .examples-row { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+  .example-chip {
+    padding: 4px 10px; border-radius: 999px;
+    background: #f1f5f9; border: 1px solid #e2e8f0;
+    font-size: 0.75rem; font-weight: 600; color: #475569;
+    cursor: pointer; transition: all 0.15s;
+  }
+  .example-chip:hover { background: #ecfdf5; border-color: #a7f3d0; color: #059669; }
+
+  /* ─── ADVANCED TOGGLE ─── */
+  .advanced-toggle {
+    display: flex; align-items: center; gap: 8px;
+    padding: 12px 16px; border-radius: 10px;
+    background: #f8fafc; border: 1px solid #e2e8f0;
+    cursor: pointer; margin-bottom: 12px;
+    transition: background 0.15s;
+    font-size: 0.82rem; font-weight: 600; color: #64748b;
+  }
+  .advanced-toggle:hover { background: #f1f5f9; }
+  .advanced-toggle .arrow { margin-left: auto; transition: transform 0.2s; font-size: 0.75rem; }
+  .advanced-toggle.open .arrow { transform: rotate(180deg); }
+
+  .advanced-panel {
+    background: #fff; border: 1px solid #e2e8f0; border-radius: 14px;
+    padding: 18px; margin-bottom: 12px; display: none;
+  }
+  .advanced-panel.visible { display: block; }
+  .advanced-note {
+    font-size: 0.75rem; color: #94a3b8; background: #fefce8;
+    border: 1px solid #fde68a; border-radius: 8px;
+    padding: 8px 12px; margin-bottom: 14px; line-height: 1.5;
+  }
+
+  /* ─── SUBMIT BUTTON ─── */
+  .submit-btn {
+    width: 100%; padding: 15px; border-radius: 12px; border: none;
+    background: #0f172a; color: #fff;
+    font-size: 1rem; font-weight: 800; cursor: pointer; font-family: inherit;
+    transition: background 0.15s, transform 0.1s;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+  }
+  .submit-btn:hover { background: #1e293b; transform: scale(1.01); }
+  .submit-note { font-size: 0.72rem; color: #94a3b8; text-align: center; margin-top: 8px; }
+
+  /* ─── SCREEN 2: JOB STATUS ─── */
+  .status-card {
+    background: #fff; border: 1px solid #e2e8f0;
+    border-radius: 16px; padding: 24px; margin-bottom: 12px;
+  }
+  .job-header { display: flex; align-items: center; gap: 14px; margin-bottom: 20px; }
+  .job-icon {
+    width: 48px; height: 48px; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center; font-size: 1.4rem;
+    flex-shrink: 0;
+  }
+  .job-icon.processing { background: #fef9c3; animation: spin 2s linear infinite; }
+  @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+  .job-icon.done { background: #dcfce7; animation: none; }
+  .job-meta h3 { font-size: 1rem; font-weight: 800; color: #0f172a; }
+  .job-meta p { font-size: 0.8rem; color: #64748b; margin-top: 3px; }
+
+  .status-steps { display: flex; flex-direction: column; gap: 0; margin-bottom: 20px; }
+  .status-step {
+    display: flex; align-items: flex-start; gap: 12px;
+    padding: 12px 0; position: relative;
+  }
+  .status-step::after {
+    content: ''; position: absolute; left: 14px; top: 36px;
+    width: 2px; height: calc(100% - 24px); background: #e2e8f0; z-index: 0;
+  }
+  .status-step:last-child::after { display: none; }
+  .step-dot {
+    width: 28px; height: 28px; border-radius: 999px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.75rem; font-weight: 800; position: relative; z-index: 1;
+  }
+  .step-dot.done { background: #10b981; color: #fff; }
+  .step-dot.active { background: #fbbf24; color: #fff; }
+  .step-dot.pending { background: #e2e8f0; color: #94a3b8; }
+  .step-body { padding-top: 4px; }
+  .step-title { font-size: 0.85rem; font-weight: 700; color: #0f172a; }
+  .step-title.dim { color: #94a3b8; }
+  .step-sub { font-size: 0.75rem; color: #64748b; margin-top: 2px; }
+
+  .refresh-btn {
+    width: 100%; padding: 12px; border-radius: 10px;
+    background: #f1f5f9; border: 1px solid #e2e8f0;
+    font-size: 0.85rem; font-weight: 700; color: #475569;
+    cursor: pointer; font-family: inherit;
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+  }
+
+  /* ─── SCREEN 3: REVIEW ─── */
+  .review-header-card {
+    background: #fff; border: 1px solid #e2e8f0; border-radius: 14px;
+    padding: 16px 18px; margin-bottom: 14px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .rh-left h3 { font-size: 0.95rem; font-weight: 800; color: #0f172a; }
+  .rh-left p { font-size: 0.78rem; color: #64748b; margin-top: 2px; }
+  .rh-badge {
+    padding: 6px 14px; border-radius: 999px;
+    font-size: 0.75rem; font-weight: 700;
+    background: #fef9c3; border: 1px solid #fde68a; color: #a16207;
+  }
+
+  .approve-all-btn {
+    width: 100%; padding: 13px; border-radius: 12px; border: none;
+    background: #10b981; color: #fff;
+    font-size: 0.9rem; font-weight: 800; cursor: pointer; font-family: inherit;
+    margin-bottom: 14px; transition: background 0.15s;
+  }
+  .approve-all-btn:hover { background: #059669; }
+
+  .entry-cards { display: flex; flex-direction: column; gap: 10px; }
+  .entry-card {
+    background: #fff; border: 1.5px solid #e2e8f0;
+    border-radius: 13px; overflow: hidden;
+  }
+  .entry-card.approved { border-color: #86efac; }
+  .entry-head {
+    display: flex; align-items: center; gap: 10px;
+    padding: 12px 14px; cursor: pointer;
+    border-bottom: 1px solid #f1f5f9;
+    transition: background 0.15s;
+  }
+  .entry-head:hover { background: #f8fafc; }
+  .entry-num { width: 26px; height: 26px; border-radius: 7px; background: #f1f5f9; color: #64748b; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 800; flex-shrink: 0; }
+  .entry-card.approved .entry-num { background: #dcfce7; color: #16a34a; }
+  .entry-word { flex: 1; font-size: 0.88rem; font-weight: 700; color: #0f172a; }
+  .entry-status { font-size: 0.72rem; font-weight: 700; padding: 3px 8px; border-radius: 999px; }
+  .status-pending { background: #fef9c3; color: #a16207; }
+  .status-approved { background: #dcfce7; color: #16a34a; }
+  .approve-btn {
+    padding: 5px 12px; border-radius: 7px; border: 1px solid #a7f3d0;
+    background: #f0fdf4; color: #059669;
+    font-size: 0.72rem; font-weight: 700; cursor: pointer; font-family: inherit;
+    flex-shrink: 0;
+  }
+  .entry-body {
+    padding: 12px 14px; display: none;
+    border-top: 1px solid #f1f5f9;
+  }
+  .entry-body.open { display: block; }
+  .hint-preview { display: flex; flex-direction: column; gap: 6px; }
+  .hp-row { display: flex; gap: 8px; align-items: flex-start; }
+  .hp-num { width: 20px; height: 20px; background: #f1f5f9; border-radius: 5px; display: flex; align-items: center; justify-content: center; font-size: 0.6rem; font-weight: 800; color: #64748b; flex-shrink: 0; margin-top: 1px; }
+  .hp-text { font-size: 0.8rem; color: #475569; line-height: 1.5; }
+  .edit-entry-btn {
+    margin-top: 10px; padding: 6px 14px; border-radius: 7px;
+    background: #f8fafc; border: 1px solid #e2e8f0;
+    font-size: 0.75rem; font-weight: 600; color: #475569; cursor: pointer; font-family: inherit;
+  }
+
+  /* ─── MY GAMES LIST ─── */
+  .my-games-section { margin-bottom: 20px; }
+  .mg-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+  .mg-title { font-size: 0.72rem; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.08em; }
+  .new-game-btn {
+    padding: 6px 14px; border-radius: 8px; border: none;
+    background: #0f172a; color: #fff;
+    font-size: 0.75rem; font-weight: 700; cursor: pointer; font-family: inherit;
+  }
+  .mg-list { display: flex; flex-direction: column; gap: 8px; }
+  .mg-row {
+    background: #fff; border: 1px solid #e2e8f0; border-radius: 12px;
+    padding: 12px 14px; display: flex; align-items: center; gap: 10px;
+  }
+  .mg-icon { font-size: 1.2rem; flex-shrink: 0; }
+  .mg-info { flex: 1; }
+  .mg-name { font-size: 0.88rem; font-weight: 700; color: #0f172a; }
+  .mg-meta { font-size: 0.72rem; color: #94a3b8; margin-top: 2px; }
+  .mg-badge { padding: 3px 9px; border-radius: 999px; font-size: 0.65rem; font-weight: 700; flex-shrink: 0; }
+  .badge-published { background: #dcfce7; color: #16a34a; }
+  .badge-review { background: #fef9c3; color: #a16207; }
+  .badge-local { background: #f1f5f9; color: #64748b; }
+  .mg-actions { display: flex; gap: 6px; }
+  .mg-action-btn { padding: 5px 10px; border-radius: 7px; border: 1px solid #e2e8f0; background: #f8fafc; font-size: 0.7rem; font-weight: 600; color: #475569; cursor: pointer; font-family: inherit; }
+
+  /* ─── ANNOTATIONS ─── */
+  .ann {
+    background: rgba(251,191,36,0.95); color: #000;
+    font-size: 0.68rem; font-weight: 700; padding: 3px 8px; border-radius: 4px;
+    white-space: nowrap; position: absolute; z-index: 50; pointer-events: none;
+  }
+</style>
+</head>
+<body>
+
+<!-- Step nav -->
+<div class="top-nav">
+  <div class="nav-step active" onclick="go(0)" id="s0"><div class="nav-num">1</div> Create</div>
+  <div class="nav-step" onclick="go(1)" id="s1"><div class="nav-num">2</div> Generating…</div>
+  <div class="nav-step" onclick="go(2)" id="s2"><div class="nav-num">3</div> Review & Publish</div>
+  <div class="nav-step" onclick="go(3)" id="s3"><div class="nav-num">4</div> My Games</div>
+</div>
+
+<!-- Header -->
+<div class="app-header">
+  <div class="logo">five<span class="dot">.</span>hints</div>
+  <span style="color:#e2e8f0;">|</span>
+  <span class="bc-item">Play</span>
+  <span class="bc-sep">›</span>
+  <span class="bc-item active">Create</span>
+  <div class="header-right">
+    <div class="mode-toggle">
+      <button class="mt-btn off">Play</button>
+      <button class="mt-btn on">Create</button>
+    </div>
+    <div class="avatar">PJ</div>
+  </div>
+</div>
+
+
+<!-- ════ SCREEN 1: CREATE FORM ════ -->
+<div class="screen active" id="screen-0">
+<div class="main">
+
+  <div class="section-header" style="position:relative;">
+    <div class="ann" style="top:0;right:0;">Mode toggle in header switches Play ↔ Create</div>
+    <h2>Create a New Game</h2>
+    <p>Tell us what your game is about — we'll generate the hints automatically.</p>
+  </div>
+
+  <!-- Step 1: Basic info -->
+  <div class="form-card" style="position:relative;">
+    <div class="ann" style="top:-12px;right:0;">3-step form: What → Category → Options</div>
+
+    <div class="form-group">
+      <label class="form-label">What should players identify?</label>
+      <input class="form-input" placeholder='e.g. "Identify the World Capital"' value="Identify the World Capital">
+      <div class="form-hint">This becomes the game title and tells the AI what kind of clues to generate.</div>
+      <div class="examples-row">
+        <div class="example-chip" onclick="this.style.background='#ecfdf5';this.style.borderColor='#a7f3d0';this.style.color='#059669'">Identify the Animal</div>
+        <div class="example-chip">Identify the Actor</div>
+        <div class="example-chip">Identify the Movie</div>
+        <div class="example-chip">Guess the Country</div>
+        <div class="example-chip">Name the Scientist</div>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Game Name</label>
+      <input class="form-input" placeholder="e.g. World Capitals (Easy)" value="World Capitals">
+      <div class="form-hint">Shown to players when they pick a game.</div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">How many words / answers to generate?</label>
+      <select class="form-select">
+        <option>10 entries</option>
+        <option selected>20 entries</option>
+        <option>30 entries</option>
+        <option>50 entries</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Step 2: Category -->
+  <div class="form-card" style="position:relative;">
+    <div class="ann" style="top:-12px;right:0;">Pick existing category or create new inline</div>
+    <div class="form-group">
+      <label class="form-label">Category</label>
+      <div class="cat-options">
+        <button class="cat-chip selected" onclick="selectCat(this)">
+          <span class="cat-icon">🌍</span> Geography
+        </button>
+        <button class="cat-chip" onclick="selectCat(this)">
+          <span class="cat-icon">🎬</span> Pop Culture
+        </button>
+        <button class="cat-chip" onclick="selectCat(this)">
+          <span class="cat-icon">🔬</span> Science
+        </button>
+        <button class="cat-chip" onclick="selectCat(this)">
+          <span class="cat-icon">🏅</span> Sports
+        </button>
+        <button class="cat-chip" onclick="selectCat(this)">
+          <span class="cat-icon">📚</span> History
+        </button>
+        <button class="cat-chip new-cat" onclick="toggleNewCat(this)">
+          <span class="cat-icon">＋</span> New category…
+        </button>
+      </div>
+      <div class="new-cat-input-wrap" id="new-cat-wrap">
+        <input class="form-input" placeholder="Category name (e.g. Indian Cinema)" style="margin-top:0;">
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 3: Options -->
+  <div class="form-card">
+    <div class="form-group">
+      <label class="form-label">Include audio hint <span class="optional">— optional</span></label>
+      <select class="form-select">
+        <option>No</option>
+        <option>Yes — add a music / audio clue</option>
+      </select>
+      <div class="form-hint">If enabled, the AI generates a YouTube audio hint suggestion for each entry.</div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Visibility</label>
+      <select class="form-select">
+        <option>Public — anyone can play</option>
+        <option>Private — only people you share with</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Advanced toggle -->
+  <div class="advanced-toggle" id="adv-toggle" onclick="toggleAdvanced()">
+    <span>⚙</span>
+    <span>Advanced — customize AI prompts</span>
+    <span class="arrow" id="adv-arrow">▾</span>
+  </div>
+
+  <div class="advanced-panel" id="adv-panel">
+    <div class="advanced-note">
+      ℹ These fields let you fine-tune exactly how the AI generates clues. Leave them blank to use smart defaults based on your game description above.
+    </div>
+    <div class="form-group">
+      <label class="form-label">Game prompt <span class="optional">— overrides default</span></label>
+      <textarea class="form-textarea" placeholder="Describe in detail what the AI should generate…"></textarea>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Title prompt <span class="optional">— overrides default</span></label>
+      <textarea class="form-textarea" rows="2" placeholder="How should the title hint be phrased?"></textarea>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Clues prompt <span class="optional">— overrides default</span></label>
+      <textarea class="form-textarea" placeholder="Describe the style of each clue…"></textarea>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Audio prompt <span class="optional">— overrides default</span></label>
+      <textarea class="form-textarea" rows="2" placeholder="How should audio hints be selected?"></textarea>
+    </div>
+  </div>
+
+  <button class="submit-btn" onclick="go(1)">
+    ✨ Generate Game
+  </button>
+  <div class="submit-note">Generation usually takes 1–3 minutes. You'll review the results before publishing.</div>
+
+</div>
+</div>
+
+
+<!-- ════ SCREEN 2: JOB STATUS ════ -->
+<div class="screen" id="screen-1">
+<div class="main">
+
+  <div class="section-header">
+    <h2>Generating Your Game</h2>
+    <p>The AI is creating clues for 20 World Capitals. This usually takes 1–3 minutes.</p>
+  </div>
+
+  <div class="status-card" style="position:relative;">
+    <div class="ann" style="top:-12px;right:0;">Auto-refreshes every 5s — no manual polling needed</div>
+    <div class="job-header">
+      <div class="job-icon processing">⚙</div>
+      <div class="job-meta">
+        <h3>World Capitals</h3>
+        <p>Geography · 20 entries · by Priya</p>
+      </div>
+    </div>
+
+    <div class="status-steps">
+      <div class="status-step">
+        <div class="step-dot done">✓</div>
+        <div class="step-body">
+          <div class="step-title">Job queued</div>
+          <div class="step-sub">Submitted at 3:42 PM · Job #4827</div>
+        </div>
+      </div>
+      <div class="status-step">
+        <div class="step-dot done">✓</div>
+        <div class="step-body">
+          <div class="step-title">Generating entries</div>
+          <div class="step-sub">AI is writing hints for 20 capitals</div>
+        </div>
+      </div>
+      <div class="status-step">
+        <div class="step-dot active">…</div>
+        <div class="step-body">
+          <div class="step-title">Quality check</div>
+          <div class="step-sub">Reviewing generated entries for accuracy</div>
+        </div>
+      </div>
+      <div class="status-step">
+        <div class="step-dot pending">4</div>
+        <div class="step-body">
+          <div class="step-title dim">Ready to review</div>
+          <div class="step-sub">You'll be notified when done</div>
+        </div>
+      </div>
+    </div>
+
+    <button class="refresh-btn">↻ Check status</button>
+  </div>
+
+  <div style="background:#f0fdf4;border:1px solid #a7f3d0;border-radius:12px;padding:14px 16px;margin-top:8px;">
+    <div style="font-size:0.8rem;font-weight:700;color:#059669;margin-bottom:4px;">Meanwhile, go play!</div>
+    <div style="font-size:0.78rem;color:#064e3b;line-height:1.5;">Your game will appear in <strong>My Games</strong> once it's ready to review. You can close this page — we'll keep it going.</div>
+    <button style="margin-top:10px;padding:8px 16px;border-radius:8px;background:#10b981;border:none;color:#fff;font-size:0.78rem;font-weight:700;cursor:pointer;font-family:inherit;" onclick="go(0)">← Back to Create / Play</button>
+  </div>
+
+</div>
+</div>
+
+
+<!-- ════ SCREEN 3: REVIEW & PUBLISH ════ -->
+<div class="screen" id="screen-2">
+<div class="main">
+
+  <div class="review-header-card" style="position:relative;">
+    <div class="ann" style="top:-12px;right:0;">Reached from "My Games" once generation completes</div>
+    <div class="rh-left">
+      <h3>World Capitals</h3>
+      <p>Geography · 20 entries generated · by Priya</p>
+    </div>
+    <div class="rh-badge">18 pending</div>
+  </div>
+
+  <button class="approve-all-btn" onclick="approveAll()">✓ Approve All & Publish</button>
+
+  <div class="entry-cards" id="entry-list">
+
+    <div class="entry-card approved">
+      <div class="entry-head" onclick="toggleEntry(this)">
+        <div class="entry-num">✓</div>
+        <div class="entry-word">Ankara</div>
+        <div class="entry-status status-approved">Approved</div>
+      </div>
+    </div>
+
+    <div class="entry-card approved">
+      <div class="entry-head" onclick="toggleEntry(this)">
+        <div class="entry-num">✓</div>
+        <div class="entry-word">Tokyo</div>
+        <div class="entry-status status-approved">Approved</div>
+      </div>
+    </div>
+
+    <div class="entry-card" id="entry-berlin">
+      <div class="entry-head" onclick="toggleEntry(this)">
+        <div class="entry-num">3</div>
+        <div class="entry-word">Berlin</div>
+        <div class="entry-status status-pending">Pending</div>
+        <button class="approve-btn" onclick="event.stopPropagation();approveEntry('entry-berlin')">Approve</button>
+      </div>
+      <div class="entry-body open">
+        <div class="hint-preview">
+          <div class="hp-row"><div class="hp-num">1</div><div class="hp-text">Divided by a wall for nearly three decades during the Cold War.</div></div>
+          <div class="hp-row"><div class="hp-num">2</div><div class="hp-text">Home to the Brandenburg Gate, a symbol of reunification.</div></div>
+          <div class="hp-row"><div class="hp-num">3</div><div class="hp-text">Located on the Spree River in central Europe.</div></div>
+          <div class="hp-row"><div class="hp-num">4</div><div class="hp-text">Hosted the 1936 Summer Olympics.</div></div>
+          <div class="hp-row"><div class="hp-num">5</div><div class="hp-text">Capital of the largest economy in Europe.</div></div>
+        </div>
+        <button class="edit-entry-btn">✎ Edit hints</button>
+      </div>
+    </div>
+
+    <div class="entry-card" id="entry-ottawa">
+      <div class="entry-head" onclick="toggleEntry(this)">
+        <div class="entry-num">4</div>
+        <div class="entry-word">Ottawa</div>
+        <div class="entry-status status-pending">Pending</div>
+        <button class="approve-btn" onclick="event.stopPropagation();approveEntry('entry-ottawa')">Approve</button>
+      </div>
+      <div class="entry-body">
+        <div class="hint-preview">
+          <div class="hp-row"><div class="hp-num">1</div><div class="hp-text">Situated at the confluence of three rivers in eastern Canada.</div></div>
+          <div class="hp-row"><div class="hp-num">2</div><div class="hp-text">Home to the Rideau Canal, a UNESCO World Heritage Site.</div></div>
+          <div class="hp-row"><div class="hp-num">3</div><div class="hp-text">Not the largest city in its country — that's Toronto.</div></div>
+          <div class="hp-row"><div class="hp-num">4</div><div class="hp-text">Known for tulip festivals, thanks to Dutch royal family donations.</div></div>
+          <div class="hp-row"><div class="hp-num">5</div><div class="hp-text">Shares its name with a river and a local NHL team.</div></div>
+        </div>
+        <button class="edit-entry-btn">✎ Edit hints</button>
+      </div>
+    </div>
+
+    <div style="padding:12px;text-align:center;font-size:0.78rem;color:#94a3b8;background:#fff;border:1px dashed #e2e8f0;border-radius:12px;">
+      + 16 more entries
+    </div>
+
+  </div>
+
+</div>
+</div>
+
+
+<!-- ════ SCREEN 4: MY GAMES ════ -->
+<div class="screen" id="screen-3">
+<div class="main">
+
+  <div class="my-games-section" style="position:relative;">
+    <div class="ann" style="top:-10px;right:0;">Always visible when in Create mode — quick access to all your games</div>
+    <div class="mg-header">
+      <div class="mg-title">My Games</div>
+      <button class="new-game-btn" onclick="go(0)">+ New Game</button>
+    </div>
+    <div class="mg-list">
+      <div class="mg-row">
+        <div class="mg-icon">🌍</div>
+        <div class="mg-info">
+          <div class="mg-name">World Capitals</div>
+          <div class="mg-meta">Geography · 20 entries · created today</div>
+        </div>
+        <div class="mg-badge badge-review">18 to review</div>
+        <div class="mg-actions">
+          <button class="mg-action-btn" onclick="go(2)">Review</button>
+        </div>
+      </div>
+      <div class="mg-row">
+        <div class="mg-icon">🎬</div>
+        <div class="mg-info">
+          <div class="mg-name">90s Bollywood Actors</div>
+          <div class="mg-meta">Pop Culture · 30 entries · 2 days ago</div>
+        </div>
+        <div class="mg-badge badge-published">Published</div>
+        <div class="mg-actions">
+          <button class="mg-action-btn">Play</button>
+          <button class="mg-action-btn">Share</button>
+        </div>
+      </div>
+      <div class="mg-row">
+        <div class="mg-icon">🔬</div>
+        <div class="mg-info">
+          <div class="mg-name">Nobel Prize Winners</div>
+          <div class="mg-meta">Science · 20 entries · 5 days ago</div>
+        </div>
+        <div class="mg-badge badge-published">Published</div>
+        <div class="mg-actions">
+          <button class="mg-action-btn">Play</button>
+          <button class="mg-action-btn">Share</button>
+        </div>
+      </div>
+      <div class="mg-row">
+        <div class="mg-icon">🏏</div>
+        <div class="mg-info">
+          <div class="mg-name">IPL Teams Draft</div>
+          <div class="mg-meta">Sports · 15 entries · generating…</div>
+        </div>
+        <div class="mg-badge badge-local" style="background:#fef9c3;color:#a16207;">Generating</div>
+        <div class="mg-actions">
+          <button class="mg-action-btn" onclick="go(1)">Status</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+</div>
+
+
+<script>
+function go(n) {
+  document.querySelectorAll('.screen').forEach((s,i) => s.className = 'screen' + (i===n?' active':''));
+  document.querySelectorAll('.nav-step').forEach((s,i) => {
+    s.className = 'nav-step' + (i===n?' active':'');
+  });
+}
+function selectCat(el) {
+  document.querySelectorAll('.cat-chip').forEach(c => {
+    if(!c.classList.contains('new-cat')) c.classList.remove('selected');
+  });
+  el.classList.add('selected');
+  document.getElementById('new-cat-wrap').classList.remove('visible');
+}
+function toggleNewCat(el) {
+  document.querySelectorAll('.cat-chip').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  document.getElementById('new-cat-wrap').classList.toggle('visible');
+}
+function toggleAdvanced() {
+  const panel = document.getElementById('adv-panel');
+  const toggle = document.getElementById('adv-toggle');
+  const arrow = document.getElementById('adv-arrow');
+  const open = panel.classList.toggle('visible');
+  toggle.classList.toggle('open', open);
+}
+function toggleEntry(head) {
+  const body = head.nextElementSibling;
+  if(body && body.classList.contains('entry-body')) {
+    body.classList.toggle('open');
+  }
+}
+function approveEntry(id) {
+  const card = document.getElementById(id);
+  card.classList.add('approved');
+  card.querySelector('.entry-num').textContent = '✓';
+  card.querySelector('.entry-status').textContent = 'Approved';
+  card.querySelector('.entry-status').className = 'entry-status status-approved';
+  const btn = card.querySelector('.approve-btn');
+  if(btn) btn.remove();
+}
+function approveAll() {
+  document.querySelectorAll('.entry-card').forEach(card => {
+    if(!card.classList.contains('approved')) {
+      const id = card.id;
+      if(id) approveEntry(id);
+    }
+  });
+}
+</script>
+</body>
+</html>

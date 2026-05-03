@@ -1,17 +1,17 @@
 export default function ModeToggle({ mode, onChange }) {
   return (
-    <div className="flex bg-slate-100 rounded-lg p-1 gap-0.5">
+    <div className="inline-flex items-center rounded-full border border-slate-200 bg-white/85 p-1 shadow-[0_10px_25px_rgba(15,23,42,0.08)] backdrop-blur-sm">
       {['solo', 'group'].map((m) => (
         <button
           key={m}
           onClick={() => onChange(m)}
-          className={`px-3 py-1 rounded-md text-xs font-bold transition-all capitalize ${
+          className={`rounded-full px-4 py-1.5 text-xs font-bold tracking-[0.1em] uppercase leading-none transition-all duration-200 ${
             mode === m
-              ? 'bg-white text-slate-900 shadow-sm'
-              : 'bg-transparent text-slate-400'
+              ? 'bg-[linear-gradient(135deg,#0f172a,#1e293b)] text-white shadow-[0_8px_18px_rgba(15,23,42,0.24)]'
+              : 'text-slate-500 hover:text-slate-800'
           }`}
         >
-          {m.charAt(0).toUpperCase() + m.slice(1)}
+          {m}
         </button>
       ))}
     </div>

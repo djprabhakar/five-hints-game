@@ -106,7 +106,14 @@ export default function MobileNav({
                         type="button"
                         className="flex-1 min-w-0 text-left px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors"
                       >
-                        <span className="block truncate">{game.name}</span>
+                        <span className="flex items-center gap-2 min-w-0">
+                          <span className="block truncate">{game.name}</span>
+                          {game.isToday && (
+                            <span className="flex-shrink-0 rounded-full bg-emerald-100 px-1.5 py-0.5 text-[9px] font-black uppercase tracking-[0.08em] text-emerald-700">
+                              Today
+                            </span>
+                          )}
+                        </span>
                         {game.createdBy !== 'System' && (
                           <span className="block text-xs text-slate-400 font-normal truncate">by {game.createdBy}</span>
                         )}

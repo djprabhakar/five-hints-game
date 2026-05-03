@@ -1,4 +1,14 @@
-export default function Lobby({ session, nickname, onStart, onLeave }) {
+export default function Lobby({ session, nickname, onStart, onLeave, starting = false, message = '' }) {
+  if (!session) {
+    return (
+      <div className="mx-auto w-full" style={{ maxWidth: 'var(--max-w-lobby)' }}>
+        <div className="bg-white border border-slate-200 rounded-[16px] p-6 text-center text-sm font-semibold text-slate-500">
+          Loading session...
+        </div>
+      </div>
+    )
+  }
+
   const isHost = session?.players?.find((p) => p.name === nickname)?.isHost ?? false
   const playerCount = session?.players?.length ?? 0
   const canStart = isHost && playerCount >= 2
@@ -47,19 +57,25 @@ export default function Lobby({ session, nickname, onStart, onLeave }) {
           {playerCount < 8 && (
             <div className="px-5 py-3 flex items-center gap-3 border-dashed border-slate-200">
               <div className="w-8 h-8 rounded-full border-2 border-dashed border-slate-200 flex-shrink-0" />
-              <span className="text-sm text-slate-300 font-medium">Waiting for players…</span>
+              <span className="text-sm text-slate-300 font-medium">Waiting for players...</span>
             </div>
           )}
         </div>
       </div>
 
+      {message && (
+        <div className="bg-emerald-50 border border-emerald-200 rounded-[12px] px-4 py-3 text-sm font-semibold text-emerald-700">
+          {message}
+        </div>
+      )}
+
       {isHost && (
         <button
           onClick={onStart}
-          disabled={!canStart}
+          disabled={!canStart || starting}
           className="w-full bg-slate-900 hover:bg-slate-700 disabled:opacity-40 text-white font-bold py-3 rounded-[12px] transition-colors"
         >
-          {canStart ? `Start Game ▶ (${playerCount} players)` : 'Waiting for at least 2 players…'}
+          {starting ? 'Starting game...' : canStart ? `Start Game (${playerCount} players)` : 'Waiting for at least 2 players...'}
         </button>
       )}
 

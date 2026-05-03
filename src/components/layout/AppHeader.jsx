@@ -29,18 +29,22 @@ export default function AppHeader({ crumbs = [], mode, onModeChange, nickname, a
       )}
 
       {/* Right controls */}
-      <div className="flex items-center gap-1.5 sm:gap-2 ml-auto flex-shrink-0">
+      <div className="flex items-center gap-2 sm:gap-3 ml-auto flex-shrink-0">
         {/* Play / Create toggle */}
-        <div className="flex bg-slate-100 rounded-lg p-0.5 sm:p-1 gap-0.5">
+        <div className="inline-flex items-center rounded-full border border-slate-200 bg-white/90 p-1 shadow-[0_10px_25px_rgba(15,23,42,0.08)] backdrop-blur-sm">
           {['play', 'create'].map((m) => (
             <button
               key={m}
               onClick={() => onAppModeChange(m)}
-              className={`px-2 sm:px-3 py-1 rounded-md text-xs font-bold transition-all capitalize ${
-                appMode === m ? 'bg-white text-slate-900 shadow-sm' : 'bg-transparent text-slate-400'
+              className={`rounded-full px-3 sm:px-4 py-1.5 text-xs font-bold uppercase tracking-[0.1em] leading-none transition-all duration-200 ${
+                appMode === m
+                  ? m === 'play'
+                    ? 'bg-[linear-gradient(135deg,#10b981,#0d9488)] text-white shadow-[0_8px_18px_rgba(16,185,129,0.28)]'
+                    : 'bg-[linear-gradient(135deg,#0f172a,#334155)] text-white shadow-[0_8px_18px_rgba(15,23,42,0.22)]'
+                  : 'text-slate-500 hover:text-slate-800'
               }`}
             >
-              {m.charAt(0).toUpperCase() + m.slice(1)}
+              {m}
             </button>
           ))}
         </div>

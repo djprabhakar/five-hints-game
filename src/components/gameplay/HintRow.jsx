@@ -6,7 +6,7 @@ const STATE_STYLES = {
   correct:  'bg-[var(--color-hint-correct-bg)] border-[var(--color-hint-correct-border)]',
 }
 
-export default function HintRow({ index, state, text, wrongGuess }) {
+export default function HintRow({ index, state, text, wrongGuess, correctGuess }) {
   const isLocked = state === 'locked'
   const label = state === 'active' ? `Hint ${index + 1} · Guess now` : `Hint ${index + 1}`
 
@@ -46,10 +46,11 @@ export default function HintRow({ index, state, text, wrongGuess }) {
         </span>
       )}
       {state === 'correct' && (
-        <span className="inline-flex items-center justify-center text-emerald-600 bg-emerald-50 border border-emerald-200 p-0.5 lg:p-1 rounded-full flex-shrink-0">
-          <svg aria-hidden="true" className="w-3 h-3 lg:w-3.5 lg:h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
+        <span className="inline-flex items-center gap-1 text-[10px] lg:text-xs font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 lg:px-2 py-0.5 rounded-full flex-shrink-0 max-w-[9rem] self-start mt-0.5">
+          <svg aria-hidden="true" className="w-2.5 h-2.5 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
             <path d="M20 6L9 17l-5-5" />
           </svg>
+          <span className="truncate">{correctGuess || 'Correct'}</span>
         </span>
       )}
     </div>

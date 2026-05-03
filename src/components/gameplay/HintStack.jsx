@@ -1,6 +1,6 @@
 import HintRow from './HintRow'
 
-export default function HintStack({ hints, hintStates, wrongGuesses = {} }) {
+export default function HintStack({ hints, hintStates, wrongGuesses = {}, correctGuesses = {} }) {
   return (
     <div className="flex flex-col gap-2 max-w-full overflow-hidden">
       {hints.map((hint, i) => (
@@ -10,6 +10,7 @@ export default function HintStack({ hints, hintStates, wrongGuesses = {} }) {
           state={hintStates[i] ?? 'locked'}
           text={hint}
           wrongGuess={wrongGuesses[i]}
+          correctGuess={correctGuesses[i]}
         />
       ))}
     </div>

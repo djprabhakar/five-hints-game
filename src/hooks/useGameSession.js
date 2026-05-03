@@ -1,30 +1,7 @@
 import { useState, useMemo, useCallback } from 'react'
+import { writeLifetimeStats } from './lifetimeStats'
 
-// ── Lifetime stats persistence ─────────────────────────────────────────────
-const STATS_KEY = 'five-hints.stats'
-
-export const readLifetimeStats = () => {
-  try {
-    const parsed = JSON.parse(localStorage.getItem(STATS_KEY) || '{}')
-    return {
-      wordsSolved:    Number(parsed.wordsSolved)    || 0,
-      wordsAttempted: Number(parsed.wordsAttempted) || 0,
-      totalPoints:    Number(parsed.totalPoints)    || 0,
-      bestStreak:     Number(parsed.bestStreak)     || 0,
-    }
-  } catch {
-    return { wordsSolved: 0, wordsAttempted: 0, totalPoints: 0, bestStreak: 0 }
-  }
-}
-
-const writeLifetimeStats = (updater) => {
-  try {
-    const current = readLifetimeStats()
-    const next = typeof updater === 'function' ? updater(current) : { ...current, ...updater }
-    localStorage.setItem(STATS_KEY, JSON.stringify(next))
-  } catch {}
-}
-// ──────────────────────────────────────────────────────────────────────────
+export { readLifetimeStats } from './lifetimeStats'
 
 const initialEntryState = () => ({
   game: null,
@@ -95,10 +72,11 @@ export function useGameSession() {
         if (!prev) return prev
         const newStreak = prev.streak + 1
         writeLifetimeStats((s) => ({
-          wordsSolved:    s.wordsSolved + 1,
+          ...s,
+          wordsSolved: s.wordsSolved + 1,
           wordsAttempted: s.wordsAttempted + 1,
-          totalPoints:    s.totalPoints + pts,
-          bestStreak:     Math.max(s.bestStreak, newStreak),
+          totalPoints: s.totalPoints + pts,
+          bestStreak: Math.max(s.bestStreak, newStreak),
         }))
         return {
           ...prev,

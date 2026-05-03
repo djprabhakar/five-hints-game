@@ -8,6 +8,11 @@ export default function InputCard({
 }) {
   const listRef = useRef(null)
 
+  function selectSuggestion(event, word) {
+    event.preventDefault()
+    onSuggestionSelect(word)
+  }
+
   const dots = Array.from({ length: maxAttempts }, (_, i) => {
     if (i < attempts) return 'used'
     if (i === attempts) return 'current'
@@ -44,7 +49,7 @@ export default function InputCard({
       style={{
         bottom: 'calc(3.5rem + env(safe-area-inset-bottom))',
         boxShadow: 'var(--shadow-active-input)',
-        zIndex: 30,
+        zIndex: 50,
       }}
     >
       <form onSubmit={handleSubmit} className="flex gap-2 relative max-w-full">
@@ -62,15 +67,13 @@ export default function InputCard({
           />
 
           {showSuggestions && (
-            <ul className="absolute left-0 right-0 top-full mt-1 bg-white border border-slate-200 rounded-[10px] shadow-lg overflow-hidden z-20 max-h-48 overflow-y-auto">
+            <ul className="absolute left-0 right-0 top-full mt-1 bg-white border border-slate-200 rounded-[10px] shadow-lg overflow-hidden z-10 max-h-48 overflow-y-auto">
               {suggestions.map((word) => (
                 <li key={word}>
                   <button
                     type="button"
-                    onMouseDown={(e) => {
-                      e.preventDefault()
-                      onSuggestionSelect(word)
-                    }}
+                    onPointerDown={(e) => selectSuggestion(e, word)}
+                    onClick={(e) => selectSuggestion(e, word)}
                     className="w-full text-left px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-emerald-50 hover:text-emerald-700 transition-colors"
                   >
                     {word}

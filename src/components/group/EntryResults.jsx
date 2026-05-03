@@ -1,15 +1,15 @@
 const RANK_ICONS = ['🥇', '🥈', '🥉']
 
 export default function EntryResults({ session, myName, onNext, onLeave }) {
-  const isHost = session?.players?.find((p) => p.name === myName)?.isHost ?? false
-
-  const sorted = [...(session?.players ?? [])].sort((a, b) => (b.entryPoints ?? 0) - (a.entryPoints ?? 0))
+  const isHost = session?.players?.find((player) => player.name === myName)?.isHost ?? false
+  const isLastEntry = (session?.currentEntryIndex ?? 0) + 1 >= (session?.totalEntries ?? 0)
+  const sorted = [...(session?.players ?? [])].sort((left, right) => (right.entryPoints ?? 0) - (left.entryPoints ?? 0))
 
   return (
     <div className="mx-auto w-full space-y-4" style={{ maxWidth: 'var(--max-w-lobby)' }}>
       <div className="bg-white border-2 border-emerald-300 rounded-[16px] p-5 text-center space-y-1">
         <p className="text-[11px] font-black uppercase tracking-[0.15em] text-emerald-600">Correct answer</p>
-        <p className="text-2xl font-black text-slate-900">{session?.correctAnswer ?? '—'}</p>
+        <p className="text-2xl font-black text-slate-900">{session?.correctAnswer ?? '-'}</p>
       </div>
 
       <div className="bg-white border border-slate-200 rounded-[16px] overflow-hidden">
@@ -31,7 +31,7 @@ export default function EntryResults({ session, myName, onNext, onLeave }) {
               <div className="flex-1 min-w-0">
                 <div className="font-bold text-slate-800">{player.name}</div>
                 <div className={`text-xs font-semibold ${player.correct ? 'text-emerald-600' : 'text-slate-400'}`}>
-                  {player.correct ? `✓ ${player.answer}` : '✗ didn\'t get it'}
+                  {player.correct ? `✓ ${player.answer}` : "✕ didn't get it"}
                 </div>
               </div>
               <div className="text-right flex-shrink-0">
@@ -49,11 +49,11 @@ export default function EntryResults({ session, myName, onNext, onLeave }) {
             onClick={onNext}
             className="flex-1 bg-slate-900 hover:bg-slate-700 text-white font-bold py-3 rounded-[12px] transition-colors"
           >
-            Next Entry →
+            {isLastEntry ? 'Finish Game ->' : 'Next Entry ->'}
           </button>
         ) : (
           <div className="flex-1 bg-slate-50 border border-slate-200 rounded-[12px] py-3 text-center text-sm font-semibold text-slate-400">
-            Waiting for host…
+            Waiting for host...
           </div>
         )}
         <button

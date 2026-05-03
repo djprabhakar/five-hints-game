@@ -8,6 +8,7 @@ import PlayScreen from './components/gameplay/PlayScreen'
 import GroupSetup from './components/group/GroupSetup'
 import Lobby from './components/group/Lobby'
 import EntryResults from './components/group/EntryResults'
+import GameSummary from './components/group/GameSummary'
 import CreateForm from './components/create/CreateForm'
 import JobStatus from './components/create/JobStatus'
 import ReviewEntries from './components/create/ReviewEntries'
@@ -29,6 +30,8 @@ const CREATE_GAME_JOBS_URL = `${API_BASE_URL}/api/words/Create5HintGameJobs`
 const USER_GAMES_URL = `${API_BASE_URL}/api/words/GetAll5HintGamesByUser`
 const STAGING_GAME_URL = `${API_BASE_URL}/api/words/GetStaging5HintGame`
 const APPROVE_GAME_ENTRY_URL = `${API_BASE_URL}/api/words/Approve5HintGameEntry`
+const DAILY_PUZZLES_URL = `${API_BASE_URL}/api/words/GetDailyPuzzles`
+const DAILY_CATEGORY_NAME = 'Daily Puzzle'
 
 // ─── Normalize helpers (unchanged from original) ──────────────────────────────
 
@@ -98,6 +101,57 @@ const normalizeCategoryRecord = (record) => {
   return { name, games: Number.isFinite(games) && games >= 0 ? games : null, createdBy }
 }
 
+const normalizeDailyPuzzleRecord = (record) => {
+  if (!record || typeof record !== 'object') return null
+  const date = `${record.date ?? ''}`.trim()
+  const gameName = `${record.gameName ?? record.name ?? `Daily Puzzle - ${date}`}`.trim()
+  const answer = `${record.answer ?? record.word ?? ''}`.trim()
+  const rawHints = Array.isArray(record.hints) ? record.hints : Array.isArray(record.clues) ? record.clues : []
+  const hints = rawHints.map((hint) => `${hint ?? ''}`.trim()).filter(Boolean).slice(0, 5)
+  if (!date || !gameName || !answer || hints.length !== 5) return null
+  return {
+    id: `${DAILY_CATEGORY_NAME}-${date}`,
+    date,
+    gameName,
+    title: `${record.title ?? ''}`.trim(),
+    answer,
+    hints,
+    category: DAILY_CATEGORY_NAME,
+    createdBy: `${record.createdBy ?? 'System'}`.trim() || 'System',
+  }
+}
+
+const toDailyGameSummary = (puzzle) => ({
+  id: puzzle.id,
+  name: puzzle.gameName,
+  category: DAILY_CATEGORY_NAME,
+  createdBy: puzzle.createdBy,
+  entries: 1,
+  date: puzzle.date,
+  isDaily: true,
+  isToday: puzzle.date === new Date().toISOString().slice(0, 10),
+})
+
+const toDailyGameEntry = (puzzle) => ({
+  id: puzzle.id,
+  title: puzzle.title,
+  word: puzzle.answer,
+  hints: puzzle.hints,
+  category: DAILY_CATEGORY_NAME,
+  createdBy: puzzle.createdBy,
+  createdAt: `${puzzle.date}T00:00:00.000Z`,
+  source: 'daily-archive',
+})
+
+const mergeCategories = (remoteCategories, dailyGames) => {
+  const filtered = remoteCategories.filter((category) => category.name !== DAILY_CATEGORY_NAME)
+  if (!dailyGames.length) return filtered
+  return [
+    { name: DAILY_CATEGORY_NAME, games: dailyGames.length },
+    ...filtered,
+  ]
+}
+
 const parseStoredGames = () => {
   try {
     const raw = localStorage.getItem(CREATED_GAMES_KEY)
@@ -123,14 +177,6 @@ const buildGameShortcutUrl = (category, game) => {
   const encodedCategory = encodeURIComponent(`${category ?? ''}`.trim() || 'Game')
   const encodedGame = encodeURIComponent(`${game ?? ''}`.trim() || 'Game')
   return `${origin}/#/play/${encodedCategory}/${encodedGame}`
-}
-
-const updateJsonAtPath = (value, path, nextLeafValue) => {
-  if (!path.length) return nextLeafValue
-  const [head, ...tail] = path
-  const nextValue = Array.isArray(value) ? [...value] : { ...value }
-  nextValue[head] = updateJsonAtPath(nextValue[head], tail, nextLeafValue)
-  return nextValue
 }
 
 
@@ -306,6 +352,11 @@ function GameSelector({ categories, systemGames, selectedCategory, selectedGame,
                         </svg>
                       )}
                       <span className="truncate">{game.name}</span>
+                      {game.isToday && (
+                        <span className="rounded-full bg-emerald-100 px-1.5 py-0.5 text-[9px] font-black uppercase tracking-[0.08em] text-emerald-700">
+                          Today
+                        </span>
+                      )}
                     </div>
                     {!isActive && game.createdBy !== 'System' && (
                       <span className="text-xs text-slate-400 font-normal">by {game.createdBy}</span>
@@ -428,15 +479,15 @@ export default function App() {
   const [reviewEntries, setReviewEntries] = useState([])
   const [reviewApproved, setReviewApproved] = useState(false)
   const [approvingIds, setApprovingIds] = useState([])
-  const [reviewLoading, setReviewLoading] = useState(false)
-  const [reviewMessage, setReviewMessage] = useState('')
   const [userApiGames, setUserApiGames] = useState([])
   const [createdGames, setCreatedGames] = useState(() => parseStoredGames())
   const [processedJobIds, setProcessedJobIds] = useState([])
+  const [dailyArchive, setDailyArchive] = useState([])
 
   // Group session
   const [pendingGroupSession, setPendingGroupSession] = useState(null)
-  const [groupPhase, setGroupPhase] = useState('setup') // 'setup' | 'lobby' | 'playing' | 'results'
+  const [groupPhase, setGroupPhase] = useState('setup') // 'setup' | 'lobby' | 'playing' | 'results' | 'summary'
+  const [groupLobbyMessage, setGroupLobbyMessage] = useState('')
   const [hiddenOverflowPanels, setHiddenOverflowPanels] = useState(() => new Set())
 
   const gameSession = useGameSession()
@@ -461,14 +512,31 @@ export default function App() {
     const load = async () => {
       setLoadingCategories(true)
       try {
-        const res = await fetch(SYSTEM_CATEGORIES_URL)
-        if (!res.ok) throw new Error()
-        const payload = await res.json()
-        const cats = Array.isArray(payload?.categories)
+        const [categoriesRes, dailyRes] = await Promise.all([
+          fetch(SYSTEM_CATEGORIES_URL),
+          fetch(DAILY_PUZZLES_URL),
+        ])
+        if (!categoriesRes.ok) throw new Error()
+        const payload = await categoriesRes.json()
+        const remoteCategories = Array.isArray(payload?.categories)
           ? payload.categories.map(normalizeCategoryRecord).filter(Boolean)
           : []
-        setSystemCategories(cats)
-        setSelectedCategory((cur) => cur || cats[0]?.name || '')
+
+        let dailyGames = []
+        if (dailyRes.ok) {
+          const dailyPayload = await dailyRes.json()
+          const puzzles = Array.isArray(dailyPayload?.puzzles)
+            ? dailyPayload.puzzles.map(normalizeDailyPuzzleRecord).filter(Boolean)
+            : []
+          dailyGames = puzzles
+          setDailyArchive(puzzles)
+        } else {
+          setDailyArchive([])
+        }
+
+        const mergedCategories = mergeCategories(remoteCategories, dailyGames)
+        setSystemCategories(mergedCategories)
+        setSelectedCategory((cur) => cur || mergedCategories[0]?.name || '')
       } catch {
         setSelectionMessage('Categories could not be loaded.')
       } finally {
@@ -493,12 +561,41 @@ export default function App() {
   useEffect(() => {
     const shortcut = parsePlayShortcutPath()
     if (!shortcut || !nickname.trim()) return
-    startGameFromName(shortcut.game, {
-      id: `${shortcut.category}-${shortcut.game}`,
-      name: shortcut.game,
-      category: shortcut.category,
-      createdBy: '',
-    })
+
+    let cancelled = false
+
+    const loadShortcutGame = async () => {
+      try {
+        const res = await fetch(`${SYSTEM_ALL_GAMES_URL}?category=${encodeURIComponent(shortcut.category)}`)
+        if (!res.ok) throw new Error()
+        const payload = await res.json()
+        const raw = Array.isArray(payload?.data) ? payload.data : Array.isArray(payload?.games) ? payload.games : Array.isArray(payload) ? payload : []
+        const summary = raw
+          .map((record) => normalizeSystemGameSummary(record, shortcut.category))
+          .filter(Boolean)
+          .find((game) => game.name.toLowerCase() === shortcut.game.toLowerCase())
+
+        if (cancelled) return
+
+        startGameFromName(shortcut.game, summary || {
+          id: `${shortcut.category}-${shortcut.game}`,
+          name: shortcut.game,
+          category: shortcut.category,
+          createdBy: '',
+        })
+      } catch {
+        if (cancelled) return
+        startGameFromName(shortcut.game, {
+          id: `${shortcut.category}-${shortcut.game}`,
+          name: shortcut.game,
+          category: shortcut.category,
+          createdBy: '',
+        })
+      }
+    }
+
+    loadShortcutGame()
+    return () => { cancelled = true }
   }, [nickname])
 
   // Group polling: detect revealReady → switch to results
@@ -508,12 +605,54 @@ export default function App() {
     }
   }, [groupSession.revealReady, groupPhase])
 
+  useEffect(() => {
+    const status = `${groupSession.session?.status ?? ''}`.trim().toLowerCase()
+    if (status !== 'inprogress') return
+
+    if (!groupSession.revealReady && groupPhase === 'results') {
+      setGroupPhase('playing')
+    }
+  }, [groupSession.session?.status, groupSession.revealReady, groupPhase, groupSession.session?.currentEntryIndex])
+
+  useEffect(() => {
+    const status = `${groupSession.session?.status ?? ''}`.trim().toLowerCase()
+    if (status !== 'finished') return
+
+    let cancelled = false
+
+    const finalizeGame = async () => {
+      const summary = groupSession.summary ?? await groupSession.finalize()
+      if (!cancelled && summary) {
+        setGroupPhase('summary')
+      }
+    }
+
+    finalizeGame()
+    return () => { cancelled = true }
+  }, [groupSession.session?.status, groupSession.summary, groupSession.finalize])
+
   const loadGamesForCategory = useCallback(async (category) => {
     if (!category) return
     setLoadingGames(true)
     setSystemGames([])
     setSelectedCategory(category)
     setSelectionMessage('')
+    if (category === DAILY_CATEGORY_NAME) {
+      const dailyGames = [...dailyArchive]
+        .sort((left, right) => right.date.localeCompare(left.date))
+        .map(toDailyGameSummary)
+      setSystemGames(dailyGames)
+      const todaysGame = dailyGames.find((game) => game.isToday)
+      setSelectionMessage(
+        todaysGame
+          ? `Solve today's puzzle or replay an earlier daily from the archive.`
+          : dailyGames.length
+            ? 'Choose a daily puzzle from the archive.'
+            : 'No daily puzzles are available yet.'
+      )
+      setLoadingGames(false)
+      return
+    }
     try {
       const res = await fetch(`${SYSTEM_ALL_GAMES_URL}?category=${encodeURIComponent(category)}`)
       if (!res.ok) throw new Error()
@@ -528,13 +667,28 @@ export default function App() {
     } finally {
       setLoadingGames(false)
     }
-  }, [])
+  }, [dailyArchive])
 
   const startGameFromName = useCallback(async (gameName, sourceSummary) => {
     const name = `${gameName ?? ''}`.trim()
     if (!name) return
     setLoadingGamePool(true)
     setSelectionMessage('')
+    if ((sourceSummary?.category ?? selectedCategory) === DAILY_CATEGORY_NAME) {
+      const puzzle = dailyArchive.find((entry) => entry.gameName.toLowerCase() === name.toLowerCase())
+      if (!puzzle) {
+        setSelectionMessage(`Daily puzzle "${name}" could not be found in the archive.`)
+        setLoadingGamePool(false)
+        return
+      }
+      const summary = sourceSummary || toDailyGameSummary(puzzle)
+      gameSession.startPool([toDailyGameEntry(puzzle)], summary)
+      setSelectedGame(summary)
+      setSelectedCategory(DAILY_CATEGORY_NAME)
+      setSelectionMessage(summary.isToday ? 'Solving today\'s daily puzzle.' : `Replaying "${name}".`)
+      setLoadingGamePool(false)
+      return
+    }
     try {
       const res = await fetch(`${SYSTEM_GAMES_URL}?game=${encodeURIComponent(name)}`)
       if (!res.ok) throw new Error()
@@ -555,7 +709,37 @@ export default function App() {
     } finally {
       setLoadingGamePool(false)
     }
-  }, [selectedCategory, gameSession])
+  }, [selectedCategory, gameSession, dailyArchive])
+
+  const handlePlayDailyPuzzle = useCallback(() => {
+    const todaysPuzzle = dailyArchive.find((puzzle) => puzzle.date === new Date().toISOString().slice(0, 10))
+    if (!todaysPuzzle) {
+      setSelectedCategory(DAILY_CATEGORY_NAME)
+      loadGamesForCategory(DAILY_CATEGORY_NAME)
+      return
+    }
+    const summary = toDailyGameSummary(todaysPuzzle)
+    setSelectedCategory(DAILY_CATEGORY_NAME)
+    setSystemGames([...dailyArchive].sort((left, right) => right.date.localeCompare(left.date)).map(toDailyGameSummary))
+    startGameFromName(summary.name, summary)
+  }, [dailyArchive, loadGamesForCategory, startGameFromName])
+
+  const handleStartGroupGame = useCallback(async () => {
+    const startedSession = await groupSession.start()
+    if (!startedSession) return
+    setGroupLobbyMessage('Game started. Joining players...')
+    setGroupPhase('playing')
+  }, [groupSession.start])
+
+  useEffect(() => {
+    const status = `${groupSession.session?.status ?? ''}`.trim().toLowerCase()
+    if (status !== 'inprogress') return
+
+    if (groupPhase === 'lobby') {
+      setGroupLobbyMessage('The host started the game. Joining now...')
+      setGroupPhase('playing')
+    }
+  }, [groupSession.session?.status, groupPhase])
 
   const loadUserGames = useCallback(async () => {
     const user = nickname.trim()
@@ -639,8 +823,6 @@ export default function App() {
     setReviewGame(game)
     setReviewEntries([])
     setReviewApproved(false)
-    setReviewMessage(`Loading "${game.name}" for review…`)
-    setReviewLoading(true)
     try {
       const user = game.userName || game.createdBy || nickname.trim()
       const res = await fetch(
@@ -650,11 +832,8 @@ export default function App() {
       const payload = await res.json()
       const entries = Array.isArray(payload?.data) ? payload.data : Array.isArray(payload) ? payload : []
       setReviewEntries(entries)
-      setReviewMessage(entries.length ? '' : 'No staging entries found.')
     } catch (err) {
-      setReviewMessage(err.message)
-    } finally {
-      setReviewLoading(false)
+      console.error(err)
     }
   }, [nickname])
 
@@ -672,7 +851,7 @@ export default function App() {
       setReviewApproved(reviewEntries.length === 1)
       await loadUserGames()
     } catch (err) {
-      setReviewMessage(err.message)
+      console.error(err)
     } finally {
       setApprovingIds((ids) => ids.filter((id) => id !== idx))
     }
@@ -693,7 +872,7 @@ export default function App() {
       setReviewApproved(true)
       await loadUserGames()
     } catch (err) {
-      setReviewMessage(err.message)
+      console.error(err)
     } finally {
       setApprovingIds([])
     }
@@ -828,6 +1007,7 @@ export default function App() {
                     nickname={nickname}
                     categories={systemCategories}
                     onCategorySelect={loadGamesForCategory}
+                    onPlayDaily={handlePlayDailyPuzzle}
                   />
                 </div>
               </div>
@@ -840,8 +1020,12 @@ export default function App() {
                   <GroupSetup
                     nickname={nickname}
                     categories={systemCategories}
+                    selectedCategory={selectedCategory}
+                    systemGames={systemGames}
+                    onCategorySelect={loadGamesForCategory}
                     onSessionCreated={(s) => {
                       setPendingGroupSession(s)
+                      setGroupLobbyMessage('')
                       setGroupPhase('lobby')
                     }}
                   />
@@ -850,8 +1034,10 @@ export default function App() {
                   <Lobby
                     session={groupSession.session}
                     nickname={nickname}
-                    onStart={() => setGroupPhase('playing')}
-                    onLeave={() => { groupSession.leave(); setGroupPhase('setup') }}
+                    starting={groupSession.starting}
+                    message={groupLobbyMessage || (groupSession.session?.status === 'InProgress' ? 'The host started the game. Join now.' : '')}
+                    onStart={handleStartGroupGame}
+                    onLeave={() => { groupSession.leave(); setGroupLobbyMessage(''); setGroupPhase('setup') }}
                   />
                 )}
                 {groupPhase === 'playing' && (
@@ -868,8 +1054,24 @@ export default function App() {
                   <EntryResults
                     session={groupSession.session}
                     myName={nickname}
-                    onNext={() => { groupSession.advance(); setGroupPhase('playing') }}
-                    onLeave={() => { groupSession.leave(); setPlayMode('solo') }}
+                    onNext={async () => {
+                      const nextSession = await groupSession.advance()
+                      if (!nextSession) return
+                      if (`${nextSession.status ?? ''}`.trim().toLowerCase() === 'finished') {
+                        const summary = groupSession.summary ?? await groupSession.finalize()
+                        if (summary) setGroupPhase('summary')
+                        return
+                      }
+                      setGroupPhase('playing')
+                    }}
+                    onLeave={() => { groupSession.leave(); setGroupLobbyMessage(''); setPlayMode('solo') }}
+                  />
+                )}
+                {groupPhase === 'summary' && (
+                  <GameSummary
+                    summary={groupSession.summary}
+                    myName={nickname}
+                    onLeave={() => { groupSession.leave(); setGroupLobbyMessage(''); setGroupPhase('setup'); setPlayMode('solo') }}
                   />
                 )}
               </div>
@@ -914,3 +1116,5 @@ export default function App() {
     </div>
   )
 }
+
+
